@@ -2,7 +2,7 @@
 #
 # This file is part of SENAITE.SAMPLEIMPORTER.
 #
-# SENAITE.SAMPLEIMPORTER is free software: you can redistribute it and/or modify
+# SENAITE.CORE.LISTING is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by the Free
 # Software Foundation, version 2.
 #
@@ -18,8 +18,19 @@
 # Copyright 2019 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-try:
-    __import__('pkg_resources').declare_namespace(__name__)
-except ImportError:
-    from pkgutil import extend_path
-    __path__ = extend_path(__path__, __name__)
+from bika.lims.interfaces import IBikaLIMS
+from senaite.lims.interfaces import ISenaiteLIMS
+from zope.interface import Interface
+
+
+class ISenaiteSampleImporterLayer(IBikaLIMS, ISenaiteLIMS):
+    """Zope 3 browser Layer interface specific for senaite.sampleimporter
+    This interface is referred in profiles/default/browserlayer.xml.
+    All views and viewlets register against this layer will appear in the site
+    only when the add-on installer has been run.
+    """
+
+
+class IARImport(Interface):
+    """Marker interface for an ARImport
+    """

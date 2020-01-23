@@ -1,14 +1,14 @@
 *Sample bulk importing and export add-on for SENAITE*
 =====================================================
 
-.. image:: https://img.shields.io/github/issues-pr/senaite/senaite.arimporter.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.arimporter/pulls
+.. image:: https://img.shields.io/github/issues-pr/senaite/senaite.sampleimporter.svg?style=flat-square
+   :target: https://github.com/senaite/senaite.sampleimporter/pulls
 
-.. image:: https://img.shields.io/github/issues/senaite/senaite.arimporter.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.arimporter/issues
+.. image:: https://img.shields.io/github/issues/senaite/senaite.sampleimporter.svg?style=flat-square
+   :target: https://github.com/senaite/senaite.sampleimporter/issues
 
 .. image:: https://img.shields.io/badge/README-GitHub-blue.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.arimporter#readme
+   :target: https://github.com/senaite/senaite.sampleimporter#readme
 
 
 Introduction
@@ -17,7 +17,7 @@ Introduction
 WARNING: This addon is not yet production ready and has not been released on PYPI
 
 
-SENAITE ARIMPORTER adds **sample bulking importing** capabilities to `SENAITE LIMS <https://www.senaite.com>`_.
+SENAITE SAMPLEIMPORTER adds **sample bulking importing** capabilities to `SENAITE LIMS <https://www.senaite.com>`_.
 
 
 Usage
@@ -29,10 +29,10 @@ The sample bulk import template can be found here.
 Installation
 ============
 
-Please follow the installations arimporter for `Plone 4`_ and
+Please follow the installations sampleimporter for `Plone 4`_ and
 `senaite.lims`_.
 
-To install SENAITE ARIMPORTER
+To install SENAITE SAMPLEIMPORTER
 list inside the `[buildout]` section of your `buildout.cfg`::
 
    [buildout]
@@ -47,7 +47,7 @@ list inside the `[buildout]` section of your `buildout.cfg`::
        Plone
        Pillow
        senaite.lims
-       senaite.arimporter
+       senaite.sampleimporter
    zcml =
    eggs-directory = ${buildout:directory}/eggs
 
@@ -86,7 +86,7 @@ console::
 Installation Requirements
 -------------------------
 
-The following versions are required for SENAITE ARIMPORTER
+The following versions are required for SENAITE SAMPLEIMPORTER
 
 -  Plone 4.3.19
 -  senaite.lims >= 1.3.0
@@ -95,27 +95,27 @@ The following versions are required for SENAITE ARIMPORTER
 Activate the Add-on
 -------------------
 
-Please browse to the *Add-ons* Controlpanel and activate the **SENAITE ARIMPORTER** Add-on:
+Please browse to the *Add-ons* Controlpanel and activate the **SENAITE SAMPLEIMPORTER** Add-on:
 
 .. image:: static/activate_addon.png
-    :alt: Activate SENAITE ARIMPORTER Add-on
+    :alt: Activate SENAITE SAMPLEIMPORTER Add-on
 
 Contribute
 ==========
 
-We want contributing to SENAITE.ARIMPORTER to be fun, enjoyable, and educational
+We want contributing to SENAITE.SAMPLEIMPORTER to be fun, enjoyable, and educational
 for anyone, and everyone. This project adheres to the `Contributor Covenant
-<https://github.com/senaite/senaite.arimporter/blob/master/CODE_OF_CONDUCT.md>`_.
+<https://github.com/senaite/senaite.sampleimporter/blob/master/CODE_OF_CONDUCT.md>`_.
 
 By participating, you are expected to uphold this code. Please report
 unacceptable behavior.
 
 Contributions go far beyond pull requests and commits. Although we love giving
-you the opportunity to put your stamp on SENAITE.ARIMPORTER, we also are thrilled
+you the opportunity to put your stamp on SENAITE.SAMPLEIMPORTER, we also are thrilled
 to receive a variety of other contributions.
 
-Please, read `Contributing to senaite.arimporter document
-<https://github.com/senaite/senaite.arimporter/blob/master/CONTRIBUTING.md>`_.
+Please, read `Contributing to senaite.sampleimporter document
+<https://github.com/senaite/senaite.sampleimporter/blob/master/CONTRIBUTING.md>`_.
 
 
 Feedback and support
@@ -129,11 +129,11 @@ Feedback and support
 License
 =======
 
-**SENAITE.ARIMPORTER** Copyright (C) 2019 Senaite Foundation
+**SENAITE.SAMPLEIMPORTER** Copyright (C) 2019 Senaite Foundation
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the `GNU General Public License version 2
-<https://github.com/senaite/senaite.arimporter/blob/master/LICENSE>`_ as published
+<https://github.com/senaite/senaite.sampleimporter/blob/master/LICENSE>`_ as published
 by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,

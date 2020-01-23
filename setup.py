@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of SENAITE.ARIMPORTER
+# This file is part of SENAITE.SAMPLEIMPORTER
 #
 # Copyright 2019 by it's authors
 
@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 version = "1.0.1"
 
 setup(
-    name="senaite.arimporter",
+    name="senaite.sampleimporter",
     version=version,
     description="AR importing add-on for SENAITE",
     long_description=open("README.rst").read(),
@@ -25,7 +25,7 @@ setup(
     keywords=['senaite', 'lims', 'opensource'],
     author="SENAITE Foundation",
     author_email="support@senaite.com",
-    url="https://github.com/senaite/senaite.arimporter",
+    url="https://github.com/senaite/senaite.sampleimporter",
     license="GPLv2",
     packages=find_packages("src", exclude=["ez_setup"]),
     package_dir={"": "src"},
