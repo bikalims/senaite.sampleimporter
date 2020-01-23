@@ -37,7 +37,7 @@ except ImportError:  # Python 2.7
     import unittest
 
 
-class TestARImports(BaseTestCase):
+class TestSampleImports(BaseTestCase):
     def addthing(self, folder, portal_type, **kwargs):
         thing = _createObjectByType(portal_type, folder, tmpID())
         thing.unmarkCreationFlag()
@@ -46,7 +46,7 @@ class TestARImports(BaseTestCase):
         return thing
 
     def setUp(self):
-        super(TestARImports, self).setUp()
+        super(TestSampleImports, self).setUp()
         setRoles(self.portal, TEST_USER_ID, ['Member', 'LabManager'])
         login(self.portal, TEST_USER_NAME)
         client = self.addthing(
@@ -85,17 +85,17 @@ class TestARImports(BaseTestCase):
             title='Properties', Service=[c.UID(), d.UID()])
 
     def tearDown(self):
-        super(TestARImports, self).setUp()
+        super(TestSampleImports, self).setUp()
         login(self.portal, TEST_USER_NAME)
 
     def test_complete_valid_batch_import(self):
         pc = getToolByName(self.portal, 'portal_catalog')
         workflow = getToolByName(self.portal, 'portal_workflow')
         client = self.portal.clients.objectValues()[0]
-        arimport = self.addthing(client, 'ARImport')
-        arimport.unmarkCreationFlag()
-        arimport.setFilename("test1.csv")
-        arimport.setOriginalFile("""
+        sampleimport = self.addthing(client, 'SampleImport')
+        sampleimport.unmarkCreationFlag()
+        sampleimport.setFilename("test1.csv")
+        sampleimport.setOriginalFile("""
 Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
 Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
 Batch Header, id,       title,     description,    ClientBatchID, ClientBatchComment, BatchLabels, ReturnSampleToClient,,,
@@ -111,54 +111,54 @@ Total price excl Tax,,,,,,,,,,,,,,
         """)
 
         # check that values are saved without errors
-        arimport.setErrors([])
-        arimport.save_header_data()
-        arimport.save_sample_data()
-        arimport.create_or_reference_batch()
-        errors = arimport.getErrors()
+        sampleimport.setErrors([])
+        sampleimport.save_header_data()
+        sampleimport.save_sample_data()
+        sampleimport.create_or_reference_batch()
+        errors = sampleimport.getErrors()
         if errors:
             self.fail("Unexpected errors while saving data: " + str(errors))
-        # check that batch was created and linked to arimport without errors
+        # check that batch was created and linked to sampleimport without errors
         if not pc(portal_type='Batch'):
             self.fail("Batch was not created!")
-        if not arimport.schema['Batch'].get(arimport):
-            self.fail("Batch was created, but not linked to ARImport.")
+        if not sampleimport.schema['Batch'].get(sampleimport):
+            self.fail("Batch was created, but not linked to SampleImport.")
 
         # the workflow scripts use response.write(); silence them
-        arimport.REQUEST.response.write = lambda x: x
+        sampleimport.REQUEST.response.write = lambda x: x
 
         # check that validation succeeds without any errors
-        workflow.doActionFor(arimport, 'validate')
-        state = workflow.getInfoFor(arimport, 'review_state')
+        workflow.doActionFor(sampleimport, 'validate')
+        state = workflow.getInfoFor(sampleimport, 'review_state')
         if state != 'valid':
-            errors = arimport.getErrors()
+            errors = sampleimport.getErrors()
             self.fail(
-                'Validation failed!  %s.Errors: %s' % (arimport.id, errors))
+                'Validation failed!  %s.Errors: %s' % (sampleimport.id, errors))
 
         # Import objects and verify that they exist
-        workflow.doActionFor(arimport, 'import')
-        state = workflow.getInfoFor(arimport, 'review_state')
+        workflow.doActionFor(sampleimport, 'import')
+        state = workflow.getInfoFor(sampleimport, 'review_state')
         if state != 'imported':
-            errors = arimport.getErrors()
+            errors = sampleimport.getErrors()
             self.fail(
-                'Importation failed!  %s.Errors: %s' % (arimport.id, errors))
+                'Importation failed!  %s.Errors: %s' % (sampleimport.id, errors))
 
         barc = getToolByName(self.portal, CATALOG_ANALYSIS_REQUEST_LISTING)
-        ars = barc(portal_type='AnalysisRequest')
-        if not ars[0].getObject().getContact():
-            self.fail('No Contact imported into ar.Contact field.')
-        l = len(ars)
-        if l != 4:
-            self.fail('4 AnalysisRequests were not created!  We found %s' % l)
+        samples = barc(portal_type='AnalysisRequest')
+        if not samples[0].getObject().getContact():
+            self.fail('No Contact imported into sample.Contact field.')
+        sample_len = len(samples)
+        if sample_len != 4:
+            self.fail('4 AnalysisRequests were not created!  We found %s' % sample_len)
         bac = getToolByName(self.portal, CATALOG_ANALYSIS_LISTING)
         analyses = bac(portal_type='Analysis')
-        l = len(analyses)
-        if l != 12:
+        sample_len = len(analyses)
+        if sample_len != 12:
             self.fail('12 Analysis not found! We found %s' % l)
         states = [workflow.getInfoFor(a.getObject(), 'review_state')
                   for a in analyses]
-        ars_states = [ar.review_state for ar in ars]
-        if ars_states != ['sample_due'] * 4:
+        sample_states = [sample.review_state for sample in samples]
+        if sample_states != ['sample_due'] * 4:
             self.fail('Samples states should all be sample_due, '
                       'but are not!')
         if states != ['registered'] * 12:
@@ -166,10 +166,10 @@ Total price excl Tax,,,,,,,,,,,,,,
 
     def test_LIMS_2080_correctly_interpret_false_and_blank_values(self):
         client = self.portal.clients.objectValues()[0]
-        arimport = self.addthing(client, 'ARImport')
-        arimport.unmarkCreationFlag()
-        arimport.setFilename("test1.csv")
-        arimport.setOriginalFile("""
+        sampleimport = self.addthing(client, 'SampleImport')
+        sampleimport.unmarkCreationFlag()
+        sampleimport.setFilename("test1.csv")
+        sampleimport.setOriginalFile("""
 Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
 Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
 Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,ReportDryMatter,Priority,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
@@ -183,10 +183,10 @@ Total price excl Tax,,,,,,,,,,,,,,
         """)
 
         # check that values are saved without errors
-        arimport.setErrors([])
-        arimport.save_header_data()
-        arimport.save_sample_data()
-        errors = arimport.getErrors()
+        sampleimport.setErrors([])
+        sampleimport.save_header_data()
+        sampleimport.save_sample_data()
+        errors = sampleimport.getErrors()
         if errors:
             self.fail("Unexpected errors while saving data: " + str(errors))
         transaction.commit()
@@ -195,13 +195,13 @@ Total price excl Tax,,,,,,,,,,,,,,
             password=TEST_USER_PASSWORD,
             loggedIn=True)
 
-        doActionFor(arimport, 'validate')
-        c_state = getCurrentState(arimport)
+        doActionFor(sampleimport, 'validate')
+        c_state = getCurrentState(sampleimport)
         self.assertTrue(
             c_state == 'valid',
             "ARrimport in 'invalid' state after it has been transitioned to "
             "'valid'.")
-        browser.open(arimport.absolute_url() + "/edit")
+        browser.open(sampleimport.absolute_url() + "/edit")
         content = browser.contents
         re.match(
             '<option selected=\"selected\" value=\"\d+\">Toilet</option>',
@@ -213,10 +213,10 @@ Total price excl Tax,,,,,,,,,,,,,,
 
     def test_LIMS_2081_post_edit_fails_validation_gracefully(self):
         client = self.portal.clients.objectValues()[0]
-        arimport = self.addthing(client, 'ARImport')
-        arimport.unmarkCreationFlag()
-        arimport.setFilename("test1.csv")
-        arimport.setOriginalFile("""
+        sampleimport = self.addthing(client, 'SampleImport')
+        sampleimport.unmarkCreationFlag()
+        sampleimport.setFilename("test1.csv")
+        sampleimport.setOriginalFile("""
 Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
 Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
 Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,ReportDryMatter,Priority,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
@@ -227,23 +227,23 @@ Total price excl Tax,,,,,,,,,,,,,,
         """)
 
         # check that values are saved without errors
-        arimport.setErrors([])
-        arimport.save_header_data()
-        arimport.save_sample_data()
-        arimport.create_or_reference_batch()
-        errors = arimport.getErrors()
+        sampleimport.setErrors([])
+        sampleimport.save_header_data()
+        sampleimport.save_sample_data()
+        sampleimport.create_or_reference_batch()
+        errors = sampleimport.getErrors()
         if errors:
             self.fail("Unexpected errors while saving data: " + str(errors))
         transaction.commit()
         browser = self.getBrowser(loggedIn=True)
-        browser.open(arimport.absolute_url() + "/edit")
+        browser.open(sampleimport.absolute_url() + "/edit")
         browser.getControl(name="ClientReference").value = 'test_reference'
         browser.getControl(name="form.button.save").click()
         if 'test_reference' not in browser.contents:
-            self.fail('Failed to modify ARImport object (Client Reference)')
+            self.fail('Failed to modify SampleImport object (Client Reference)')
 
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestARImports))
+    suite.addTest(unittest.makeSuite(TestSampleImports))
     return suite

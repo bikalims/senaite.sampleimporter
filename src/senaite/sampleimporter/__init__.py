@@ -38,7 +38,7 @@ PROFILE_ID = "profile-{}:default".format(PRODUCT_NAME)
 # declarations for all of the the packages and sub-packages along the path
 # used to access the module. Thus, all the modules from the path passed in to
 # `allow_module` will be available.
-allow_module('senaite.sampleimporter.workflow.arimport.guards')
+allow_module('senaite.sampleimporter.workflow.sampleimport.guards')
 
 
 # Defining a Message Factory for when this product is internationalized.
@@ -50,7 +50,7 @@ logger = logging.getLogger(PRODUCT_NAME)
 def initialize(context):
     """Initializer called when used as a Zope 2 product."""
 
-    from content.arimport import ARImport  # noqa
+    from content.sampleimport import SampleImport  # noqa
 
     logger.info("*** Initializing SENAITE.SAMPLEIMPORTER ***")
     types = listTypes(PRODUCT_NAME)

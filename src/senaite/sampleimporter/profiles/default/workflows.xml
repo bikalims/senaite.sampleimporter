@@ -2,7 +2,7 @@
 <object name="portal_workflow" meta_type="Plone Workflow Tool">
   <object name="senaite_sampleimporter_workflow" meta_type="Workflow"/>
   <bindings>
-    <type type_id="ARImport">
+    <type type_id="SampleImport">
       <bound-workflow workflow_id="senaite_sampleimporter_workflow"/>
     </type>
   </bindings>

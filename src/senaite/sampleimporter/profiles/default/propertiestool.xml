@@ -4,7 +4,7 @@
 
  <object name="navtree_properties" meta_type="Plone Property Sheet">
   <property name="metaTypesNotToList" type="lines">
-    <element value="ARImport"/>
+    <element value="SampleImport"/>
   </property>
  </object>
 

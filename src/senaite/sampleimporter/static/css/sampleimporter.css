@@ -1,18 +1,18 @@
-/* ARImport */
-.icons-on .section-arimports .contenttype-folder{
+/* SampleImport */
+.icons-on .section-sampleimports .contenttype-folder{
     background: no-repeat transparent url(&dtml-portal_url;/++resource++bika.lims.images/folder.png);
 }
-table.arimport {
+table.sampleimport {
   border-top: 1px solid #dddddd;
 }
-table.arimport {
+table.sampleimport {
     width: 100%;
     border-collapse: collapse;
     border-left: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
     border-bottom: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
     margin: 1em 0em 1em 0em;
 }
-table.arimport th {
+table.sampleimport th {
     background: &dtml-globalBackgroundColor;;
     border-top: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
     border-right: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
@@ -20,27 +20,27 @@ table.arimport th {
     padding: 0.1em 0.5em;
     text-align: left;
 }
-table.arimport th.center {
+table.sampleimport th.center {
     text-align: center;
 }
-table.arimport .top {
+table.sampleimport .top {
     border-left: &dtml-borderWidth; &dtml-borderStyle; &dtml-backgroundColor;;
     border-top: &dtml-borderWidth; &dtml-borderStyle; &dtml-backgroundColor; ! important;
     border-right: &dtml-borderWidth; &dtml-borderStyle; &dtml-backgroundColor; ! important;
     text-align: right ! important;
     padding: 0em 0em 1em 0em;
 }
-table.arimport .listingCheckbox {
+table.sampleimport .listingCheckbox {
     text-align: center;
 }
-table.arimport td.left {
+table.sampleimport td.left {
     text-align: left;
     padding-left: 0.5em;
 }
-table.arimport td.contact {
+table.sampleimport td.contact {
     text-align: left;
 }
-table.arimport td {
+table.sampleimport td {
     border-right: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
     border-top: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
     border-bottom: &dtml-borderWidth; &dtml-borderStyle; &dtml-globalBorderColor;;
@@ -48,42 +48,42 @@ table.arimport td {
     vertical-align: top;
     text-align: center;
 }
-table.arimport .noborder {
+table.sampleimport .noborder {
     background: transparent;;
     border: none
 }
-table.arimport td.center {
+table.sampleimport td.center {
     vertical-align: middle;
 }
-table.arimport a:hover {
+table.sampleimport a:hover {
     text-decoration: underline;
 }
-table.arimport img {
+table.sampleimport img {
     vertical-align: middle;
 }
 
-table.arimport input {
+table.sampleimport input {
     border: 1px solid &dtml-globalBackgroundColor;;
 }
 
-table.arimport .amount {
+table.sampleimport .amount {
     text-align: right;
     padding-right: 1em;
 }
-table.arimport .calculated {
+table.sampleimport .calculated {
     text-align: right;
     padding-right: 1em;
     border: none ! important;
     background: &dtml-backgroundColor;;
 }
 .cb,
-table.arimport * .cb {
+table.sampleimport * .cb {
     border: none;
     background-color: transparent;
 }
-table.arimport .dryhead {
+table.sampleimport .dryhead {
     background-color: #a6b5db;
 }
-table.arimport .drybody {
+table.sampleimport .drybody {
     background-color: #dae0f0;
 }

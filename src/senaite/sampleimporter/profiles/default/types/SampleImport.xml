@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
-<object name="ARImport"
+<object name="SampleImport"
         meta_type="Factory-based Type Information"
         xmlns:i18n="http://xml.zope.org/namespaces/i18n"
         i18n:domain="senaite.sampleimporter">
- <property name="title">ARImport</property>
+ <property name="title">SampleImport</property>
  <property name="description"></property>
- <property name="content_icon">++resource++senaite.sampleimporter.static/img/arimport.png</property>
- <property name="content_meta_type">ARImport</property>
+ <property name="content_icon">++resource++senaite.sampleimporter.static/img/sampleimport.png</property>
+ <property name="content_meta_type">SampleImport</property>
  <property name="product">senaite.sampleimporter</property>
- <property name="factory">addARImport</property>
+ <property name="factory">addSampleImport</property>
  <property name="global_allow">False</property>
  <property name="filter_content_types">True</property>
  <property name="allowed_content_types">
  </property>
  <property name="allow_discussion">False</property>
- <property name="default_view">arimport_view</property>
+ <property name="default_view">sampleimport_view</property>
 
  <alias from="(Default)" to="base_view"/>
  <alias from="edit" to="base_edit"/>

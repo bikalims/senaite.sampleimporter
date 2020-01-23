@@ -38,17 +38,17 @@ from zope.interface import alsoProvides
 from zope.interface import implements
 
 
-class ARImportsView(BikaListingView):
+class SampleImportsView(BikaListingView):
     implements(IViewView)
 
     def __init__(self, context, request):
-        super(ARImportsView, self).__init__(context, request)
+        super(SampleImportsView, self).__init__(context, request)
         request.set('disable_plone.rightcolumn', 1)
         alsoProvides(request, IContentListing)
 
         self.catalog = "portal_catalog"
         self.contentFilter = {
-            'portal_type': 'ARImport',
+            'portal_type': 'SampleImport',
             'is_active': True,
             'sort_on': 'sortable_title',
         }
@@ -56,16 +56,16 @@ class ARImportsView(BikaListingView):
         if IClient.providedBy(self.context):
             self.context_actions = {
                 _('Bulk Import File'): {
-                    'url': 'arimport_add',
+                    'url': 'sampleimport_add',
                     'icon': '++resource++bika.lims.images/add.png'}}
 
         self.show_select_row = False
         self.show_select_column = False
         self.pagesize = 50
-        self.form_id = "arimports"
+        self.form_id = "sampleimports"
 
         self.icon = \
-            self.portal_url + "/++resource++senaite.sampleimporter.static/img/arimport_big.png"
+            self.portal_url + "/++resource++senaite.sampleimporter.static/img/sampleimport_big.png"
         self.title = self.context.translate(_("Sample Imports"))
         self.description = ""
 
@@ -105,7 +105,7 @@ class ARImportsView(BikaListingView):
         ]
 
     def folderitems(self, **kwargs):
-        items = super(ARImportsView, self).folderitems()
+        items = super(SampleImportsView, self).folderitems()
         for x in range(len(items)):
             if 'obj' not in items[x]:
                 continue
@@ -133,9 +133,9 @@ class ARImportsView(BikaListingView):
         return items
 
 
-class ClientARImportsView(ARImportsView):
+class ClientSampleImportsView(SampleImportsView):
     def __init__(self, context, request):
-        super(ClientARImportsView, self).__init__(context, request)
+        super(ClientSampleImportsView, self).__init__(context, request)
         self.contentFilter['path'] = {
             'query': '/'.join(context.getPhysicalPath())
         }
@@ -164,12 +164,12 @@ class ClientARImportsView(ARImportsView):
         ]
 
 
-class ClientARImportAddView(BrowserView):
+class ClientSampleImportAddView(BrowserView):
     implements(IViewView)
-    template = ViewPageTemplateFile('templates/arimport_add.pt')
+    template = ViewPageTemplateFile('templates/sampleimport_add.pt')
 
     def __init__(self, context, request):
-        super(ClientARImportAddView, self).__init__(context, request)
+        super(ClientSampleImportAddView, self).__init__(context, request)
         alsoProvides(request, IContentListing)
 
     def __call__(self):
@@ -190,35 +190,35 @@ class ClientARImportAddView(BrowserView):
                 addStatusMessage(request, _("Too few lines in CSV file"))
                 return self.template()
 
-            # Create the arimport object
-            arimport = _createObjectByType("ARImport", self.context, tmpID())
-            arimport.processForm()
-            arimport.setTitle(arimport.getId())
-            arimport.schema['OriginalFile'].set(arimport, data)
+            # Create the sampleimport object
+            sampleimport = _createObjectByType("SampleImport", self.context, tmpID())
+            sampleimport.processForm()
+            sampleimport.setTitle(sampleimport.getId())
+            sampleimport.schema['OriginalFile'].set(sampleimport, data)
 
-            # Save all fields from the file into the arimport schema
-            arimport.save_header_data()
-            arimport.schema['Filename'].set(arimport, filename)
+            # Save all fields from the file into the sampleimport schema
+            sampleimport.save_header_data()
+            sampleimport.schema['Filename'].set(sampleimport, filename)
 
-            if arimport.getErrors():
-                self.request.response.redirect(arimport.absolute_url())
+            if sampleimport.getErrors():
+                self.request.response.redirect(sampleimport.absolute_url())
                 return self.template()
 
-            arimport.save_sample_data()
-            if arimport.getErrors():
-                self.request.response.redirect(arimport.absolute_url())
+            sampleimport.save_sample_data()
+            if sampleimport.getErrors():
+                self.request.response.redirect(sampleimport.absolute_url())
                 return
 
             # immediate folderbatch creation if required
-            arimport.create_or_reference_batch()
+            sampleimport.create_or_reference_batch()
             # Attempt first validation
             try:
                 wft = getToolByName(self.context, 'portal_workflow')
-                wft.doActionFor(arimport, 'validate')
-                self.request.response.redirect(arimport.absolute_url())
+                wft.doActionFor(sampleimport, 'validate')
+                self.request.response.redirect(sampleimport.absolute_url())
             except WorkflowException:
                 self.request.response.redirect(
-                    "{}/arimports".format(self.context.absolute_url()))
+                    "{}/sampleimports".format(self.context.absolute_url()))
         else:
             return self.template()
 
@@ -227,7 +227,7 @@ class ClientARImportAddView(BrowserView):
         nr = 1
         while True:
             newname = '%s-%s' % (os.path.splitext(filename)[0], nr)
-            existing = pc(portal_type='ARImport', title=newname)
+            existing = pc(portal_type='SampleImport', title=newname)
             if not existing:
                 return newname
             nr += 1

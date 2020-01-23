@@ -5,11 +5,11 @@
 	purge="True">
 
     <object name="object" meta_type="CMF Action Category">
-        <!-- ARImports listing -->
-        <object name="arimports" meta_type="CMF Action" i18n:domain="senaite.sampleimporter">
+        <!-- SampleImports listing -->
+        <object name="sampleimports" meta_type="CMF Action" i18n:domain="senaite.sampleimporter">
           <property name="title" i18n:translate="">Imports</property>
           <property name="description" i18n:translate=""></property>
-          <property name="url_expr">string:${object_url}/@@arimports</property>
+          <property name="url_expr">string:${object_url}/@@sampleimports</property>
           <property name="link_target"></property>
           <property name="icon_expr"></property>
           <property name="permissions">

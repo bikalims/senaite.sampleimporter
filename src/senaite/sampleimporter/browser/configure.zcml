@@ -3,6 +3,20 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="senaite.sampleimporter">
 
-  <include file="arimports.zcml"/>
+    <browser:page
+      for="bika.lims.interfaces.IClient"
+      name="sampleimports"
+      class="senaite.sampleimporter.browser.sampleimports.ClientSampleImportsView"
+      permission="senaite.core.permissions.ManageAnalysisRequests"
+      layer="senaite.sampleimporter.interfaces.ISenaiteSampleImporterLayer"
+    />
+
+    <browser:page
+      for="bika.lims.interfaces.IClient"
+      name="sampleimport_add"
+      class="senaite.sampleimporter.browser.sampleimports.ClientSampleImportAddView"
+      permission="senaite.core.permissions.ManageAnalysisRequests"
+      layer="senaite.sampleimporter.interfaces.ISenaiteSampleImporterLayer"
+    />
 
 </configure>

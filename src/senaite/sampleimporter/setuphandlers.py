@@ -32,14 +32,14 @@ ACTIONS_TO_HIDE = [
 NEW_CONTENT_TYPES = [
     # Tuples of (id, folder_id)
     # If folder_id is None, assume folder_id is portal
-    # ('ARImport', None)
+    # ('SampleImport', None)
 ]
 
 ID_FORMATTING = [
     # An array of dicts. Each dict represents an ID formatting configuration
     {
-        'portal_type': 'ARImport',
-        'form': 'ARI-{seq:05d}',
+        'portal_type': 'SampleImport',
+        'form': 'SI-{seq:05d}',
         'sequence_type': 'generated',
         'split_length': 1
     },
@@ -75,10 +75,10 @@ def post_install(portal_setup):
     context = portal_setup._getImportContext(PROFILE_ID)
     portal = context.getSite()  # noqa
 
-    # Allow ARImport type in Client
+    # Allow SampleImport type in Client
     client_fti = portal.portal_types.getTypeInfo("Client")
     allowed_types = list(client_fti.allowed_content_types)
-    allowed_types.append('ARImport')
+    allowed_types.append('SampleImport')
     client_fti.allowed_content_types = allowed_types
 
     # Setup catalogs

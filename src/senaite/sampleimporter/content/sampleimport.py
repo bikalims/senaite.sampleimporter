@@ -56,7 +56,7 @@ from Products.DataGridField import DataGridWidget
 from Products.DataGridField import DateColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
-from senaite.sampleimporter.interfaces import IARImport
+from senaite.sampleimporter.interfaces import ISampleImport
 from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import senaiteMessageFactory as _
 from zope.interface import implements
@@ -120,7 +120,7 @@ ClientReference = StringField(
 Contact = ReferenceField(
     'Contact',
     allowed_types=('Contact',),
-    relationship='ARImportContact',
+    relationship='SampleImportContact',
     default_method='getContactUIDForUser',
     referenceClass=HoldingReference,
     vocabulary_display_path_bound=sys.maxint,
@@ -140,7 +140,7 @@ Contact = ReferenceField(
 Batch = ReferenceField(
     'Batch',
     allowed_types=('Batch',),
-    relationship='ARImportBatch',
+    relationship='SampleImportBatch',
     widget=bReferenceWidget(
         label=_('Batch'),
         visible=True,
@@ -242,10 +242,10 @@ schema['title'].validators = ()
 schema['title']._validationLayer()
 
 
-class ARImport(BaseContent):
+class SampleImport(BaseContent):
     security = ClassSecurityInfo()
     schema = schema
-    implements(IARImport)
+    implements(ISampleImport)
 
     _at_rename_after_creation = True
 
@@ -259,17 +259,17 @@ class ARImport(BaseContent):
         if data and len(data):
             return True
 
-    # TODO Workflow - ARImport - Remove
+    # TODO Workflow - SampleImport - Remove
     def workflow_before_validate(self):
         """This function transposes values from the provided file into the
-        ARImport object's fields, and checks for invalid values.
+        SampleImport object's fields, and checks for invalid values.
 
         If errors are found:
             - Validation transition is aborted.
             - Errors are stored on object and displayed to user.
 
         """
-        # Re-set the errors on this ARImport each time validation is attempted.
+        # Re-set the errors on this SampleImport each time validation is attempted.
         # When errors are detected they are immediately appended to this field.
         self.setErrors([])
 
@@ -299,7 +299,7 @@ class ARImport(BaseContent):
             workflow.doActionFor(self, 'validate')
 
     def workflow_script_import(self):
-        """Create objects from valid ARImport
+        """Create objects from valid SampleImport
         """
         bsc = getToolByName(self, 'bika_setup_catalog')
         client = self.aq_parent
@@ -720,28 +720,27 @@ class ARImport(BaseContent):
             self.error("%s: value is invalid (%s)." % (
                 'Client ID', self.getClientID()))
 
-        existing_arimports = pc(portal_type='ARImport',
-                                review_state=['valid', 'imported'])
+        existing_sampleimports = pc(portal_type='SampleImport', review_state=['valid', 'imported'])
         # Verify Client Order Number
-        for arimport in existing_arimports:
-            if arimport.UID == self.UID() \
-                    or not arimport.getClientOrderNumber():
+        for sampleimport in existing_sampleimports:
+            if sampleimport.UID == self.UID() \
+                    or not sampleimport.getClientOrderNumber():
                 continue
-            arimport = arimport.getObject()
+            sampleimport = sampleimport.getObject()
 
-            if arimport.getClientOrderNumber() == self.getClientOrderNumber():
-                self.error('%s: already used by existing ARImport.' %
+            if sampleimport.getClientOrderNumber() == self.getClientOrderNumber():
+                self.error('%s: already used by existing SampleImport.' %
                            'ClientOrderNumber')
                 break
 
         # Verify Client Reference
-        for arimport in existing_arimports:
-            if arimport.UID == self.UID() \
-                    or not arimport.getClientReference():
+        for sampleimport in existing_sampleimports:
+            if sampleimport.UID == self.UID() \
+                    or not sampleimport.getClientReference():
                 continue
-            arimport = arimport.getObject()
-            if arimport.getClientReference() == self.getClientReference():
-                self.error('%s: already used by existing ARImport.' %
+            sampleimport = sampleimport.getObject()
+            if sampleimport.getClientReference() == self.getClientReference():
+                self.error('%s: already used by existing SampleImport.' %
                            'ClientReference')
                 break
 
@@ -930,4 +929,4 @@ class ARImport(BaseContent):
         self.setErrors(errors)
 
 
-registerType(ARImport, PRODUCT_NAME)
+registerType(SampleImport, PRODUCT_NAME)

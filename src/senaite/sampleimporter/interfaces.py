@@ -31,6 +31,6 @@ class ISenaiteSampleImporterLayer(IBikaLIMS, ISenaiteLIMS):
     """
 
 
-class IARImport(Interface):
-    """Marker interface for an ARImport
+class ISampleImport(Interface):
+    """Marker interface for an SampleImport
     """
