@@ -6,7 +6,7 @@
     <browser:page
       for="bika.lims.interfaces.IClient"
       name="sampleimports"
-      class="senaite.sampleimporter.browser.sampleimports.ClientSampleImportsView"
+      class="senaite.sampleimporter.browser.sampleimporter.ClientSampleImportsView"
       permission="senaite.core.permissions.ManageAnalysisRequests"
       layer="senaite.sampleimporter.interfaces.ISenaiteSampleImporterLayer"
     />
@@ -14,7 +14,7 @@
     <browser:page
       for="bika.lims.interfaces.IClient"
       name="sampleimport_add"
-      class="senaite.sampleimporter.browser.sampleimports.ClientSampleImportAddView"
+      class="senaite.sampleimporter.browser.sampleimporter.ClientSampleImportAddView"
       permission="senaite.core.permissions.ManageAnalysisRequests"
       layer="senaite.sampleimporter.interfaces.ISenaiteSampleImporterLayer"
     />
