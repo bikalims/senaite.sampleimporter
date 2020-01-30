@@ -18,7 +18,7 @@
 # Copyright 2019 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from senaite.sampleimporter.config import PRODUCT_NAME
+from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter.tests.base import SimpleTestCase
 
 

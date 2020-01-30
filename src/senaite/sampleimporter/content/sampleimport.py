@@ -458,14 +458,8 @@ class SampleImport(BaseContent):
                 res['samples'].append(zip(res['headers'], vals))
             elif row[0].strip().lower() == 'samples':
                 res['headers'] = [x.strip() for x in row]
-            elif row[0].strip().lower() == 'analysis price':
-                res['prices'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-            elif row[0].strip().lower() == 'total analyses':
+            elif row[0].strip().lower() == 'total analyses or profiles':
                 res['total_analyses'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-            elif row[0].strip().lower() == 'total price excl tax':
-                res['price_totals'] = \
                     zip(res['headers'], [x.strip() for x in row])
                 next_rows_are_sample_rows = True
         return res
@@ -484,6 +478,13 @@ class SampleImport(BaseContent):
 
         sample_data = self.get_sample_values()
         if not sample_data:
+            self.error("No sample data found")
+            return False
+
+        # Incorrect number of samples
+        if len(sample_data.get('samples', [])) != int(self.getNrSamples()):
+            self.error("No of Samples: {} expected but only {} found".format(
+                self.getNrSamples(), len(sample_data.get('samples', []))))
             return False
 
         # columns that we expect, but do not find, are listed here.
@@ -521,10 +522,6 @@ class SampleImport(BaseContent):
                 nr_an = int(nr_an)
             except ValueError:
                 nr_an = 0
-
-            # TODO this is ignored and is probably meant to serve some purpose.
-            if 'Price excl Tax' in row:
-                del (row['Price excl Tax'])
 
             # ContainerType - not part of sample or AR schema
             if 'ContainerType' in row:
@@ -600,8 +597,8 @@ class SampleImport(BaseContent):
             self.error("SAMPLES: Missing expected fields: %s" %
                        ','.join(missing))
 
-        for thing in errors:
-            self.error(thing)
+        for err in errors:
+            self.error(err)
 
         if unexpected:
             self.error("Unexpected header fields: %s" %

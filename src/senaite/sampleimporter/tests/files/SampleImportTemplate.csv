@@ -1,0 +1,16 @@
+Header,File name,Client name,Client ID,Contact,CC Names - Report,CC Emails - Report,CC Names - Invoice,CC Emails - Invoice,Client Order Number,Client Reference,No of Samples,,,,,,,,,,,,,,,
+Header Data,SampleImportTemplate,Happy Hills,HH,Rita Mohale,,,,,,,10,,,,,,,,,,,,,,,
+Batch Header,title,description,ClientBatchID,ClientBatchComment,BatchLabels,ReturnSampleToClient,,,,,,,,,,,,,,,,,,,,
+Batch Data,Happy Hills Survey 13,,CC 201506,Routine monthly safety measure,Commercial,1,,,,,,,,,,,,,,,,,,,,
+Samples,ClientSampleID,SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,Total number of Analyses or Profiles,Price excl Tax,PTM,TH,Mbcheck,Mbcount,Temp,Test,Ca,Enterocnt,pHField,Conductivity,Zn,pH,Ecoli,Fe,Entero,THCaCO3,Cu
+Total Analyses or Profiles,,,,,,,,36,,2,2,4,2,3,1,3,2,2,2,1,4,2,2,2,1,1
+Sample 1,HHS14001,3/9/2014,3/9/2014,Rooikloof Farm,Animal feed,Canola,Glass Bottle,7,,1,,1,,1,,,1,,1,,1,,,1,,
+Sample 2,HHS14002,3/9/2014,3/9/2014,Dispatch,Water,Lucerne,Canvas bag,3,,,1,,,,,,,,,,1,,,,1,
+Sample 3,HHS14003,3/9/2014,3/9/2014,Mixer,Fiber,Canola,Micro Glass Bottle,3,,,,1,,,,,,,,,1,1,,,,
+Sample 4,HHS14004,3/9/2014,3/9/2014,Packaging,Fiber,Sunflower,Canvas bag,4,,,,,1,1,,1,,,1,,,,,,,
+Sample 5,HHS14005,3/9/2014,3/9/2014,Packaging,Grain,Canola,Plastic bottle,2,,,,,,,,,,,,1,,,1,,,
+Sample 6,HHS14006,3/9/2014,3/9/2014,Bruma Lake,Industrial Effluent,Dust,Plastic bottle,4,,,,1,,1,1,,,,,,,1,,,,
+Sample 7,HHS14007,3/9/2014,3/9/2014,Shop - BB Supermarket,Animal feed,Bran,Plastic bottle,4,,1,,,,,,,,1,,,,,1,,,1
+Sample 8,HHS14008,3/9/2014,3/9/2014,Borehole 12,Fiber,Water,Glass bottle,4,,,,1,,,,1,,,,,1,,,1,,
+Sample 9,HHS14009,3/9/2014,3/9/2014,Dry stock,Sewage,Sunflower,Glass bottle,2,,,,,1,,,1,,,,,,,,,,
+Sample 10,HHS14010,3/9/2014,3/9/2014,Packaging,Fiber,Soya,Glass Bottle,3,,,1,,,,,,1,1,,,,,,,,

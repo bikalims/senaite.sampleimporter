@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 import unittest2 as unittest
+from bika.lims.tests.base import BaseTestCase
 from bika.lims.testing import BASE_LAYER_FIXTURE
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import PLONE_FIXTURE
@@ -30,7 +31,7 @@ from plone.app.testing import login
 from plone.app.testing import logout
 from plone.app.testing import setRoles
 from plone.testing import z2
-from senaite.sampleimporter.config import PRODUCT_NAME
+from senaite.sampleimporter import PRODUCT_NAME
 
 
 class SimpleTestLayer(PloneSandboxLayer):
@@ -43,9 +44,11 @@ class SimpleTestLayer(PloneSandboxLayer):
 
         # Load ZCML
         import bika.lims
+        import senaite.lims
         import senaite.sampleimporter
 
         self.loadZCML(package=bika.lims)
+        self.loadZCML(package=senaite.lims)
         self.loadZCML(package=senaite.sampleimporter)
 
         # Install product and call its initialize() function
@@ -56,6 +59,7 @@ class SimpleTestLayer(PloneSandboxLayer):
 
         # Apply Setup Profile (portal_quickinstaller)
         applyProfile(portal, "bika.lims:default")
+        applyProfile(portal, "senaite.lims:default")
         applyProfile(portal, "senaite.sampleimporter:default")
 
         login(portal.aq_parent, SITE_OWNER_NAME)
@@ -119,7 +123,7 @@ SIMPLE_TESTING = FunctionalTesting(
 )
 
 
-class SimpleTestCase(unittest.TestCase):
+class SimpleTestCase(BaseTestCase):
     layer = SIMPLE_TESTING
 
     def setUp(self):

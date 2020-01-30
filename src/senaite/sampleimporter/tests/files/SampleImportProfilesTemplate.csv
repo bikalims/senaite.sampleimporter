@@ -1,0 +1,10 @@
+Header,File name,Client name,Client ID,Contact,CC Names - Report,CC Emails - Report,CC Names - Invoice,CC Emails - Invoice,Client Order Number,Client Reference,No of Samples,
+Header Data,BikaSampleImportTemplateProfile,Happy Hills,HH,Rita Mohale,,,,,,,4,
+Batch Header,title,description,ClientBatchID,ClientBatchComment,BatchLabels,ReturnSampleToClient,,,,,,
+Batch Data,,,,,,,,,,,,
+Samples,ClientSampleID,DateSampled,SamplePoint,ClientReference,SampleType,ContainerType,Total number of Analyses or Profiles,Price excl Tax,PTM,TH,Mbcheck,Mbcount
+Total Analyses or Profiles,,,,,,,4,,1,1,1,1
+Sample 1,HHS14001,3/9/2014,Rooikloof Farm,1,Canola,Glass Bottle,1,,1,,,
+Sample 2,HHS14002,3/9/2014,Dispatch,2,Lucerne,Canvas bag,1,,,1,,
+Sample 3,HHS14003,3/9/2014,Mixer,3,Canola,Plastic Bottle,1,,,,1,
+Sample 4,HHS14004,3/9/2014,Packaging,4,Sunflower,Canvas bag,1,,,,,1

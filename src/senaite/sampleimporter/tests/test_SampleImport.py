@@ -23,13 +23,13 @@ import re
 import transaction
 from bika.lims.catalog import (CATALOG_ANALYSIS_LISTING,
                                CATALOG_ANALYSIS_REQUEST_LISTING)
-from bika.lims.tests.base import BaseTestCase
 from bika.lims.utils import tmpID
 from bika.lims.workflow import doActionFor, getCurrentState
 from plone.app.testing import (TEST_USER_ID, TEST_USER_NAME,
                                TEST_USER_PASSWORD, login, setRoles)
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import _createObjectByType
+from senaite.sampleimporter.tests.base import SimpleTestCase
 
 try:
     import unittest2 as unittest
@@ -37,7 +37,7 @@ except ImportError:  # Python 2.7
     import unittest
 
 
-class TestSampleImports(BaseTestCase):
+class TestSampleImports(SimpleTestCase):
     def addthing(self, folder, portal_type, **kwargs):
         thing = _createObjectByType(portal_type, folder, tmpID())
         thing.unmarkCreationFlag()
@@ -96,18 +96,16 @@ class TestSampleImports(BaseTestCase):
         sampleimport.unmarkCreationFlag()
         sampleimport.setFilename("test1.csv")
         sampleimport.setOriginalFile("""
-Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
-Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
-Batch Header, id,       title,     description,    ClientBatchID, ClientBatchComment, BatchLabels, ReturnSampleToClient,,,
-Batch Data,   B15-0123, New Batch, Optional descr, CC 201506,     Just a batch,                  , TRUE                ,,,
-Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,ReportDryMatter,Priority,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
-Analysis price,,,,,,,,,,,,,,
+Header,File name,Client name,Client ID,Contact,CC Names - Report,CC Emails - Report,CC Names - Invoice,CC Emails - Invoice,No of Samples,Client Order Number,Client Reference,,
+Header Data,test1.csv,Happy Hills,HH,Rita Mohale,,,,,4,HHPO-001,,,
+Batch Header,id,title,description,ClientBatchID,ClientBatchComment,BatchLabels,ReturnSampleToClient,,,
+Batch Data,B15-0123,New Batch,Optional descr,CC 201506,Just a batch,,TRUE,,,
+Samples,ClientSampleID,SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
 "Total Analyses or Profiles",,,,,,,,,,,,,9,,,
-Total price excl Tax,,,,,,,,,,,,,,
-"Sample 1", HHS14001,          3/9/2014,    3/9/2014,   Toilet,     Liquids,     Water,     Cup,          0,              Normal,  1,                                   0,             0,0,0,0,0,1
-"Sample 2", HHS14002,          3/9/2014,    3/9/2014,   Toilet,     Liquids,     Water,     Cup,          0,              Normal,  2,                                   0,             0,0,0,0,1,1
-"Sample 3", HHS14002,          3/9/2014,    3/9/2014,   Toilet,     Liquids,     Water,     Cup,          0,              Normal,  4,                                   0,             1,1,1,1,0,0
-"Sample 4", HHS14002,          3/9/2014,    3/9/2014,   Toilet,     Liquids,     Water,     Cup,          0,              Normal,  2,                                   0,             1,0,0,0,1,0
+"Sample 1",HHS14001,,3/9/2014,Toilet,Liquid,Water,Cup,1,0,0,0,0,0,0,1
+"Sample 2",HHS14002,,3/9/2014,Toilet,Liquid,Water,Cup,2,0,0,0,0,0,1,1
+"Sample 3",HHS14002,,3/9/2014,Toilet,Liquid,Water,Cup,4,0,1,1,1,1,0,0
+"Sample 4",HHS14003,,3/9/2014,Toilet,Liquid,Water,Cup,2,0,1,0,0,0,1,0
         """)
 
         # check that values are saved without errors
@@ -171,11 +169,9 @@ Total price excl Tax,,,,,,,,,,,,,,
         sampleimport.setFilename("test1.csv")
         sampleimport.setOriginalFile("""
 Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
-Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
+Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 4,            HHPO-001,                            ,,
 Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,ReportDryMatter,Priority,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
-Analysis price,,,,,,,,,,,,,,
 "Total Analyses or Profiles",,,,,,,,,,,,,9,,,
-Total price excl Tax,,,,,,,,,,,,,,
 "Sample 1", HHS14001,          3/9/2014,    3/9/2014,   ,     ,     Water,     Cup,          0,              Normal,  1,                                   0,             0,0,0,0,0,1
 "Sample 2", HHS14002,          3/9/2014,    3/9/2014,   ,     ,     Water,     Cup,          0,              Normal,  2,                                   0,             0,0,0,0,1,1
 "Sample 3", HHS14002,          3/9/2014,    3/9/2014,   Toilet,     Liquids,     Water,     Cup,          1,              Normal,  4,                                   0,             1,1,1,1,0,0
@@ -208,8 +204,6 @@ Total price excl Tax,,,,,,,,,,,,,,
             content)
         if len(re.findall('<.*selected.*Toilet', content)) != 2:
             self.fail("Should be two empty SamplePoints, and two with values")
-        if len(re.findall('<.*selected.*Liquids', content)) != 2:
-            self.fail("Should be two empty Matrix fields, and two with values")
 
     def test_LIMS_2081_post_edit_fails_validation_gracefully(self):
         client = self.portal.clients.objectValues()[0]
@@ -218,11 +212,9 @@ Total price excl Tax,,,,,,,,,,,,,,
         sampleimport.setFilename("test1.csv")
         sampleimport.setOriginalFile("""
 Header,      File name,  Client name,  Client ID, Contact,     CC Names - Report, CC Emails - Report, CC Names - Invoice, CC Emails - Invoice, No of Samples, Client Order Number, Client Reference,,
-Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 10,            HHPO-001,                            ,,
+Header Data, test1.csv,  Happy Hills,  HH,        Rita Mohale,                  ,                   ,                    ,                    , 1,            HHPO-001,                            ,,
 Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,ReportDryMatter,Priority,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
-Analysis price,,,,,,,,,,,,,,
 "Total Analyses or Profiles",,,,,,,,,,,,,9,,,
-Total price excl Tax,,,,,,,,,,,,,,
 "Sample 1", HHS14001,          3/9/2014,    3/9/2014,   ,     ,     Water,     Cup,          0,              Normal,  1,                                   0,             0,0,0,0,0,1
         """)
 
