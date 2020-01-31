@@ -1,14 +1,14 @@
-*Sample bulk importing and export add-on for SENAITE*
+*Sample bulk importing add-on for SENAITE*
 =====================================================
 
-.. image:: https://img.shields.io/github/issues-pr/senaite/senaite.sampleimporter.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.sampleimporter/pulls
+.. image:: https://img.shields.io/github/issues-pr/mikejmets/senaite.sampleimporter.svg?style=flat-square
+   :target: https://github.com/mikejmets/senaite.sampleimporter/pulls
 
-.. image:: https://img.shields.io/github/issues/senaite/senaite.sampleimporter.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.sampleimporter/issues
+.. image:: https://img.shields.io/github/issues/mikejmets/senaite.sampleimporter.svg?style=flat-square
+   :target: https://github.com/mikejmets/senaite.sampleimporter/issues
 
 .. image:: https://img.shields.io/badge/README-GitHub-blue.svg?style=flat-square
-   :target: https://github.com/senaite/senaite.sampleimporter#readme
+   :target: https://github.com/mikejmets/senaite.sampleimporter#readme
 
 
 Introduction
@@ -105,7 +105,7 @@ Contribute
 
 We want contributing to SENAITE.SAMPLEIMPORTER to be fun, enjoyable, and educational
 for anyone, and everyone. This project adheres to the `Contributor Covenant
-<https://github.com/senaite/senaite.sampleimporter/blob/master/CODE_OF_CONDUCT.md>`_.
+<https://github.com/mikejmets/senaite.sampleimporter/blob/master/CODE_OF_CONDUCT.md>`_.
 
 By participating, you are expected to uphold this code. Please report
 unacceptable behavior.
@@ -115,7 +115,7 @@ you the opportunity to put your stamp on SENAITE.SAMPLEIMPORTER, we also are thr
 to receive a variety of other contributions.
 
 Please, read `Contributing to senaite.sampleimporter document
-<https://github.com/senaite/senaite.sampleimporter/blob/master/CONTRIBUTING.md>`_.
+<https://github.com/mikejmets/senaite.sampleimporter/blob/master/CONTRIBUTING.md>`_.
 
 
 Feedback and support
@@ -133,7 +133,7 @@ License
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the `GNU General Public License version 2
-<https://github.com/senaite/senaite.sampleimporter/blob/master/LICENSE>`_ as published
+<https://github.com/mikejmets/senaite.sampleimporter/blob/master/LICENSE>`_ as published
 by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
