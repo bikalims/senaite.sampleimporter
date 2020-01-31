@@ -1,4 +1,4 @@
-*Sample bulk importing add-on for SENAITE*
+*Bulk sample importing add-on for SENAITE*
 =====================================================
 
 .. image:: https://img.shields.io/github/issues-pr/mikejmets/senaite.sampleimporter.svg?style=flat-square
@@ -17,20 +17,23 @@ Introduction
 WARNING: This addon is not yet production ready and has not been released on PYPI
 
 
-SENAITE SAMPLEIMPORTER adds **sample bulking importing** capabilities to `SENAITE LIMS <https://www.senaite.com>`_.
+SENAITE SAMPLEIMPORTER adds **bulk sample importing** capabilities to `SENAITE LIMS <https://www.senaite.com>`_.
 
 
 Usage
 =====
-Once installed you will find an Imports tab on a Client. Add a sample bulk import file, validate it an import the samples.
-The sample bulk import template can be found here.
+Once installed you will find an Imports tab on a Client. Click in Imports and add a bulk sample import file.
+A sample import template can be found `here <https://github.com/mikejmets/senaite.sampleimporter/src/senaite/sampleimporter/tests/files/SampleImportTemplate.csv>`.
+
+Once the file is loaded it automatically attempts to validate it's contents. If validation fails, the SampleImport will be in an Invalid state and you will see the validation errors at the bottom of the page. Fix the issue in the file and add the file again. If validation is successful the SampleImpot will be in a Valid state. In this case you can import the records by transitioning to a Imported state.
+
+Note that previously one could edit the SampleImport if it had validation errors. This functionality may still work but it is no longer supported. Rather fix the input file and load it from scratch. This is especially true if you are importing sample fields that are not in core but have been added via an addon.
 
 
 Installation
 ============
 
-Please follow the installations sampleimporter for `Plone 4`_ and
-`senaite.lims`_.
+Please follow the installations sampleimporter for `Plone 4`_ and `senaite.lims`_.
 
 To install SENAITE SAMPLEIMPORTER
 list inside the `[buildout]` section of your `buildout.cfg`::
