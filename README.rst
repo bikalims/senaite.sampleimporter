@@ -23,7 +23,7 @@ SENAITE SAMPLEIMPORTER adds **bulk sample importing** capabilities to `SENAITE L
 Usage
 =====
 Once installed you will find an Imports tab on a Client. Click in Imports and add a bulk sample import file.
-A sample import template can be found `here <https://github.com/mikejmets/senaite.sampleimporter/src/senaite/sampleimporter/tests/files/SampleImportTemplate.csv>`.
+A sample import template can be found `here <https://github.com/mikejmets/senaite.sampleimporter/src/senaite/sampleimporter/tests/files/SampleImportTemplate.csv>`_.
 
 Once the file is loaded it automatically attempts to validate it's contents. If validation fails, the SampleImport will be in an Invalid state and you will see the validation errors at the bottom of the page. Fix the issue in the file and add the file again. If validation is successful the SampleImpot will be in a Valid state. In this case you can import the records by transitioning to a Imported state.
 
