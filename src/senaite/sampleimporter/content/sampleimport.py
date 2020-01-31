@@ -28,7 +28,7 @@ from DateTime.DateTime import DateTime
 from bika.lims.browser import ulocalized_time
 from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
 from bika.lims.content.bikaschema import BikaSchema
-from bika.lims.content.analysisrequest import schema as ar_schema
+# from bika.lims.content.analysisrequest import schema as ar_schema
 from bika.lims.content.sample import schema as sample_schema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IClient
@@ -57,6 +57,7 @@ from Products.DataGridField import DateColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
 from senaite.sampleimporter.interfaces import ISampleImport
+from senaite.sampleimporter import logger
 from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import senaiteMessageFactory as _
 from zope.interface import implements
@@ -244,8 +245,8 @@ schema['title']._validationLayer()
 
 class SampleImport(BaseContent):
     security = ClassSecurityInfo()
-    schema = schema
     implements(ISampleImport)
+    schema = schema
 
     _at_rename_after_creation = True
 
@@ -464,6 +465,20 @@ class SampleImport(BaseContent):
                 next_rows_are_sample_rows = True
         return res
 
+    def get_ar(self):
+        """Create a temporary AR to fetch the fields from
+        """
+        logger.info("*** CREATING TEMPORARY AR ***")
+        return self.restrictedTraverse(
+            "portal_factory/AnalysisRequest/Request new analyses")
+
+    def get_ar_schema(self):
+        """Return the AR schema
+        """
+        logger.info("*** GET AR SCHEMA ***")
+        ar = self.get_ar()
+        return ar.Schema()
+
     def save_sample_data(self):
         """Save values from the file's header row into the DataGrid columns
         after doing some very basic validation
@@ -502,6 +517,7 @@ class SampleImport(BaseContent):
         # This will be the new sample-data field value, when we are done.
         grid_rows = []
 
+        ar_schema = self.get_ar_schema()
         row_nr = 0
         for row in sample_data['samples']:
             row = dict(row)
@@ -777,6 +793,7 @@ class SampleImport(BaseContent):
             profiles.append(p.getProfileKey())
 
         row_nr = 0
+        ar_schema = self.get_ar_schema()
         for gridrow in self.getSampleData():
             row_nr += 1
 
