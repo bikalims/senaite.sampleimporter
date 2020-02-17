@@ -28,8 +28,7 @@ from DateTime.DateTime import DateTime
 from bika.lims.browser import ulocalized_time
 from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
 from bika.lims.content.bikaschema import BikaSchema
-# from bika.lims.content.analysisrequest import schema as ar_schema
-from bika.lims.content.sample import schema as sample_schema
+from bika.lims.content.analysisrequest import schema as sample_schema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IClient
 from bika.lims.utils import tmpID
