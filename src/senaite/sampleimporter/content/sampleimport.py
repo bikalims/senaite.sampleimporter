@@ -497,6 +497,10 @@ class SampleImport(BaseContent):
             self.error("No sample data found")
             return False
 
+        if len(self.getNrSamples()) == 0:
+            self.error("'Number of samples' field is empty")
+            return False
+
         # Incorrect number of samples
         if len(sample_data.get('samples', [])) != int(self.getNrSamples()):
             self.error("No of Samples: {} expected but only {} found".format(
