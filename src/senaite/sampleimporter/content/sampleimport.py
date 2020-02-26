@@ -28,7 +28,6 @@ from DateTime.DateTime import DateTime
 from bika.lims.browser import ulocalized_time
 from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
 from bika.lims.content.bikaschema import BikaSchema
-from bika.lims.content.analysisrequest import schema as sample_schema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IClient
 from bika.lims.utils import tmpID
@@ -324,10 +323,12 @@ class SampleImport(BaseContent):
             # Same for analyses
             newanalyses = set(self.get_row_services(row) +
                               self.get_row_profile_services(row))
+
             # get batch
             batch = self.schema['Batch'].get(self)
             if batch:
                 row['Batch'] = batch.UID()
+
             # Add AR fields from schema into this row's data
             if not row.get('ClientReference'):
                 row['ClientReference'] = self.getClientReference()
@@ -335,6 +336,7 @@ class SampleImport(BaseContent):
             contact_uid =\
                 self.getContact().UID() if self.getContact() else None
             row['Contact'] = contact_uid
+
             # Creating analysis request from gathered data
             create_analysisrequest(
                 client,
@@ -548,8 +550,8 @@ class SampleImport(BaseContent):
                         gridrow['ContainerType'] = obj[0].UID
                 del (row['ContainerType'])
 
+            # SampleMatrix - not part of sample or AR schema
             if 'SampleMatrix' in row:
-                # SampleMatrix - not part of sample or AR schema
                 title = row['SampleMatrix']
                 if title:
                     obj = self.lookup(('SampleMatrix',),
@@ -557,20 +559,6 @@ class SampleImport(BaseContent):
                     if obj:
                         gridrow['SampleMatrix'] = obj[0].UID
                 del (row['SampleMatrix'])
-
-            # match against sample schema
-            for k, v in row.items():
-                if k in ['Analyses', 'Profiles']:
-                    continue
-                if k in sample_schema:
-                    del (row[k])
-                    if v:
-                        try:
-                            value = self.munge_field_value(
-                                sample_schema, row_nr, k, v)
-                            gridrow[k] = value
-                        except ValueError as e:
-                            errors.append(e.message)
 
             # match against ar schema
             for k, v in row.items():
@@ -691,7 +679,7 @@ class SampleImport(BaseContent):
             value = str(value).strip().lower()
             value = '' if value in ['0', 'no', 'false', 'none'] else '1'
             return value
-        if field.type == 'reference':
+        if field.type in ['reference', 'uidreference']:
             value = str(value).strip()
             brains = self.lookup(field.allowed_types, Title=value)
             if not brains:
@@ -800,14 +788,6 @@ class SampleImport(BaseContent):
             for k, v in gridrow.items():
                 if k in ['Analysis', 'Profiles']:
                     break
-                if k in sample_schema:
-                    try:
-                        self.validate_against_schema(
-                            sample_schema, row_nr, k, v)
-                        continue
-                    except ValueError as e:
-                        self.error(e.message)
-                        break
                 if k in ar_schema:
                     try:
                         self.validate_against_schema(
@@ -867,6 +847,8 @@ class SampleImport(BaseContent):
         directly to the catalog.
         """
         at = getToolByName(self, 'archetype_tool')
+        if type(allowed_types) not in (list, tuple):
+            allowed_types = [allowed_types]
         for portal_type in allowed_types:
             catalog = at.catalog_map.get(portal_type, [None])[0]
             catalog = getToolByName(self, catalog)
