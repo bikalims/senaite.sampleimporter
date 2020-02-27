@@ -685,6 +685,9 @@ class SampleImport(BaseContent):
             return value
         if field.type in ['reference', 'uidreference']:
             value = str(value).strip()
+            if len(value) < 2:
+                raise ValueError('Row %s: value is too short (%s=%s)' % (
+                    row_nr, fieldname, value))
             brains = self.lookup(field.allowed_types, Title=value)
             if not brains:
                 brains = self.lookup(field.allowed_types, UID=value)
