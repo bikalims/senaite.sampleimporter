@@ -190,6 +190,7 @@ Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix
             username=TEST_USER_NAME,
             password=TEST_USER_PASSWORD,
             loggedIn=True)
+        browser.addHeader("Accept-Language", "en-US")
 
         doActionFor(sampleimport, 'validate')
         c_state = getCurrentState(sampleimport)
@@ -228,6 +229,7 @@ Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix
             self.fail("Unexpected errors while saving data: " + str(errors))
         transaction.commit()
         browser = self.getBrowser(loggedIn=True)
+        browser.addHeader("Accept-Language", "en-US")
         browser.open(sampleimport.absolute_url() + "/edit")
         browser.getControl(name="ClientReference").value = 'test_reference'
         browser.getControl(name="form.button.save").click()

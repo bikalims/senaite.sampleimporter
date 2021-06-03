@@ -11,5 +11,6 @@
   <!-- Be sure to install the following dependencies if not yet installed -->
   <dependencies>
     <dependency>profile-senaite.lims:default</dependency>
+    <dependency>profile-Products.DataGridField:default</dependency>
   </dependencies>
 </metadata>
