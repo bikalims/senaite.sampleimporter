@@ -625,6 +625,9 @@ class SampleImport(BaseContent):
                 continue
             if row[0].strip().lower() == 'batch data':
                 batch_data = [x.strip() for x in row][1:]
+                # values = [i for i in batch_data if len(i) < 0]
+                # if len(values) == 0:
+                #     batch_data = []
                 break
         if not (batch_data or batch_headers):
             return None
@@ -663,6 +666,7 @@ class SampleImport(BaseContent):
             batch = _createObjectByType('Batch', client, tmpID())
             batch.processForm()
             batch.edit(**batch_headers)
+            batch.setBatchDate(DateTime())
             self.setBatch(batch)
 
     def munge_field_value(self, schema, row_nr, fieldname, value):

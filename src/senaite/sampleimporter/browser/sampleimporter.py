@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 import os
+from bika.lims import api
 from bika.lims import bikaMessageFactory as _
 from bika.lims.browser import BrowserView, ulocalized_time
 from bika.lims.browser.bika_listing import BikaListingView
@@ -109,7 +110,7 @@ class SampleImportsView(BikaListingView):
         for x in range(len(items)):
             if 'obj' not in items[x]:
                 continue
-            obj = items[x]['obj']
+            obj = api.get_object(items[x]['obj'])
             items[x]['Title'] = obj.title_or_id()
             if items[x]['review_state'] == 'invalid':
                 items[x]['replace']['Title'] = "<a href='%s/edit'>%s</a>" % (
