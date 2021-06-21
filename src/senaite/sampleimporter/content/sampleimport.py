@@ -15,246 +15,147 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-# Copyright 2018-2019 by it's authors.
+# Copyright 2018-2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-import csv
-import sys
-import transaction
+from bika.lims import api
 
-from AccessControl import ClassSecurityInfo
-from copy import deepcopy
-from DateTime.DateTime import DateTime
+# from bika.lims.catalog import BIKA_CATALOG
 from bika.lims.browser import ulocalized_time
-from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
-from bika.lims.content.bikaschema import BikaSchema
-from bika.lims.idserver import renameAfterCreation
-from bika.lims.interfaces import IClient
+from bika.lims.interfaces import IBatch
+from bika.lims.interfaces import IContact
+from bika.lims.interfaces import IContainerType
+from bika.lims.interfaces import ISampleMatrix
+from bika.lims.interfaces import ISamplePoint
+from bika.lims.interfaces import ISampleType
 from bika.lims.utils import tmpID
-from bika.lims.utils.analysisrequest import create_analysisrequest
-from bika.lims.vocabularies import CatalogVocabulary
-from plone.app.blob.field import FileField as BlobFileField
-from Products.Archetypes.atapi import BaseContent
-from Products.Archetypes.atapi import registerType
-from Products.Archetypes.atapi import Schema
-from Products.Archetypes.public import ComputedWidget
-from Products.Archetypes.public import LinesField
-from Products.Archetypes.public import LinesWidget
-from Products.Archetypes.public import ReferenceField
-from Products.Archetypes.public import ReferenceWidget
-from Products.Archetypes.public import StringField
-from Products.Archetypes.public import StringWidget
-from Products.Archetypes.references import HoldingReference
-from Products.Archetypes.utils import addStatusMessage
-from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import _createObjectByType
-from Products.DataGridField import Column
-from Products.DataGridField import DataGridField
-from Products.DataGridField import DataGridWidget
-from Products.DataGridField import DateColumn
-from Products.DataGridField import LinesColumn
-from Products.DataGridField import SelectColumn
-from senaite.sampleimporter.interfaces import ISampleImport
+import csv
+from DateTime.DateTime import DateTime
+from datetime import datetime
+from plone.autoform import directives
+from plone.dexterity.content import Item
+from plone.formwidget.contenttree import ObjPathSourceBinder
+from plone.namedfile.field import NamedBlobFile
+from plone.supermodel import model
+from senaite.core.schema.fields import DataGridField
+from senaite.core.schema.fields import DataGridRow
+from senaite.core.z3cform.widgets.datagrid import DataGridWidgetFactory
 from senaite.sampleimporter import logger
-from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import senaiteMessageFactory as _
-from zope.interface import implements
+from z3c.relationfield.schema import RelationChoice
+from zope import schema
+
+# from zope.component import getUtility
+from zope.interface import implementer
+from zope.interface import Interface
 
 
-OriginalFile = BlobFileField(
-    'OriginalFile',
-    widget=ComputedWidget(
-        visible=False
-    ),
-)
+class ICCContactRow(Interface):
+    CCNamesReport = schema.TextLine(title=u"CCNamesReport", required=False)
+    CCEmailsReport = schema.TextLine(title=u"CCEmailsReport", required=False)
+    CCNamesInvoice = schema.TextLine(title=u"CCNamesInvoice", required=False)
+    CCEmailsInvoice = schema.TextLine(title=u"CCEmailsInvoice", required=False)
 
-Filename = StringField(
-    'Filename',
-    widget=StringWidget(
-        label=_('Original Filename'),
-        visible=True
-    ),
-)
 
-NrSamples = StringField(
-    'NrSamples',
-    widget=StringWidget(
-        label=_('Number of samples'),
-        visible=True
-    ),
-)
-
-ClientName = StringField(
-    'ClientName',
-    searchable=True,
-    widget=StringWidget(
-        label=_("Client Name"),
-    ),
-)
-
-ClientID = StringField(
-    'ClientID',
-    searchable=True,
-    widget=StringWidget(
-        label=_('Client ID'),
-    ),
-)
-
-ClientOrderNumber = StringField(
-    'ClientOrderNumber',
-    searchable=True,
-    widget=StringWidget(
-        label=_('Client Order Number'),
-    ),
-)
-
-ClientReference = StringField(
-    'ClientReference',
-    searchable=True,
-    widget=StringWidget(
-        label=_('Client Reference'),
-    ),
-)
-
-Contact = ReferenceField(
-    'Contact',
-    allowed_types=('Contact',),
-    relationship='SampleImportContact',
-    default_method='getContactUIDForUser',
-    referenceClass=HoldingReference,
-    vocabulary_display_path_bound=sys.maxint,
-    widget=ReferenceWidget(
-        label=_('Primary Contact'),
-        size=20,
-        visible=True,
-        base_query={'is_active': True},
-        showOn=True,
-        popup_width='300px',
-        colModel=[{'columnName': 'UID', 'hidden': True},
-                  {'columnName': 'Fullname', 'width': '100',
-                   'label': _('Name')}],
-    ),
-)
-
-Batch = ReferenceField(
-    'Batch',
-    allowed_types=('Batch',),
-    relationship='SampleImportBatch',
-    widget=bReferenceWidget(
-        label=_('Batch'),
-        visible=True,
-        catalog_name='bika_catalog',
-        base_query={'review_state': 'open'},
-        showOn=True,
-    ),
-)
-
-CCContacts = DataGridField(
-    'CCContacts',
-    allow_insert=False,
-    allow_delete=False,
-    allow_reorder=False,
-    allow_empty_rows=False,
-    columns=('CCNamesReport',
-             'CCEmailsReport',
-             'CCNamesInvoice',
-             'CCEmailsInvoice'),
-    default=[{'CCNamesReport': [],
-              'CCEmailsReport': [],
-              'CCNamesInvoice': [],
-              'CCEmailsInvoice': []
-              }],
-    widget=DataGridWidget(
-        columns={
-            'CCNamesReport': LinesColumn('Report CC Contacts'),
-            'CCEmailsReport': LinesColumn('Report CC Emails'),
-            'CCNamesInvoice': LinesColumn('Invoice CC Contacts'),
-            'CCEmailsInvoice': LinesColumn('Invoice CC Emails')
-        }
+class ISampleDataRow(Interface):
+    ClientSampleID = schema.TextLine(title=u"ClientSampleID", required=False)
+    SamplingDate = schema.Date(title=u"SamplingDate", required=False)
+    DateSampled = schema.Date(title=u"DateSampled", required=False)
+    ClientReference = schema.TextLine(title=u"ClientReference", required=False)
+    SamplePoint = RelationChoice(
+        title=u"Sample Point",
+        required=False,
+        source=ObjPathSourceBinder(object_provides=ISamplePoint.__identifier__),
     )
-)
-
-SampleData = DataGridField(
-    'SampleData',
-    allow_insert=True,
-    allow_delete=True,
-    allow_reorder=False,
-    allow_empty_rows=False,
-    allow_oddeven=True,
-    columns=('ClientSampleID',
-             'ClientReference',
-             'SamplingDate',
-             'DateSampled',
-             'SamplePoint',
-             'SampleMatrix',
-             'SampleType',  # not a schema field!
-             'ContainerType',  # not a schema field!
-             'Analyses',  # not a schema field!
-             'Profiles'  # not a schema field!
-             ),
-    widget=DataGridWidget(
-        label=_('Samples'),
-        columns={
-            'ClientSampleID': Column('Sample ID'),
-            'SamplingDate': DateColumn('Sampling Date'),
-            'DateSampled': DateColumn('Date Sampled'),
-            'ClientReference': Column('Client Reference'),
-            'SamplePoint': SelectColumn(
-                'Sample Point', vocabulary='Vocabulary_SamplePoint'),
-            'SampleMatrix': SelectColumn(
-                'Sample Matrix', vocabulary='Vocabulary_SampleMatrix'),
-            'SampleType': SelectColumn(
-                'Sample Type', vocabulary='Vocabulary_SampleType'),
-            'ContainerType': SelectColumn(
-                'Container', vocabulary='Vocabulary_ContainerType'),
-            'Analyses': LinesColumn('Analyses'),
-            'Profiles': LinesColumn('Profiles'),
-        }
+    SampleMatrix = RelationChoice(
+        title=u"Sample Matrix",
+        required=False,
+        source=ObjPathSourceBinder(object_provides=ISampleMatrix.__identifier__),
     )
-)
-
-Errors = LinesField(
-    'Errors',
-    widget=LinesWidget(
-        label=_('Errors'),
-        rows=10,
+    SampleType = RelationChoice(
+        title=u"Sample Type",
+        required=False,
+        source=ObjPathSourceBinder(object_provides=ISampleType.__identifier__),
     )
-)
-
-schema = BikaSchema.copy() + Schema((
-    OriginalFile,
-    Filename,
-    NrSamples,
-    ClientName,
-    ClientID,
-    ClientOrderNumber,
-    ClientReference,
-    Contact,
-    CCContacts,
-    Batch,
-    SampleData,
-    Errors,
-))
-
-schema['title'].validators = ()
-# Update the validation layer after change the validator in runtime
-schema['title']._validationLayer()
+    ContainerType = RelationChoice(
+        title=u"Container Type",
+        required=False,
+        source=ObjPathSourceBinder(object_provides=IContainerType.__identifier__),
+    )
+    Analyses = schema.TextLine(title=u"Analyses", required=False)
+    Profiles = schema.TextLine(title=u"Profiles", required=False)
 
 
-class SampleImport(BaseContent):
-    security = ClassSecurityInfo()
-    implements(ISampleImport)
-    schema = schema
+class ISampleImport(model.Schema):
+    """Schema and marker interface"""
 
-    _at_rename_after_creation = True
+    OriginalFile = NamedBlobFile(
+        title=u"Original File",
+        readonly=True,
+        required=False,
+    )
+    Filename = schema.TextLine(
+        title=u"Filename",
+        required=True,
+    )
+    NrSamples = schema.TextLine(
+        title=u"Number of Samples",
+        required=True,
+    )
+    ClientName = schema.TextLine(
+        title=u"Clientname",
+        required=True,
+    )
+    ClientOrderNumber = schema.TextLine(
+        title=u"ClientOrderNumber",
+        required=True,
+    )
+    ClientReference = schema.TextLine(
+        title=u"ClientReference",
+        required=True,
+    )
+    Contact = RelationChoice(
+        title=u"Contact",
+        source=ObjPathSourceBinder(object_provides=IContact.__identifier__),
+        required=False,
+    )
+    Batch = RelationChoice(
+        title=u"Batch",
+        source=ObjPathSourceBinder(object_provides=IBatch.__identifier__),
+        required=True,
+    )
 
-    def _renameAfterCreation(self, check_auto_id=False):
-        renameAfterCreation(self)
+    directives.widget("CCContacts", DataGridWidgetFactory, allow_reorder=True)
+    CCContacts = DataGridField(
+        title=u"CC Contacts",
+        value_type=DataGridRow(title=u"CCContacts", schema=ICCContactRow),
+        required=False,
+    )
+
+    directives.widget("SampleData", DataGridWidgetFactory, allow_reorder=True)
+    SampleData = DataGridField(
+        title=u"Sample Data",
+        value_type=DataGridRow(title=u"SampleData", schema=ISampleDataRow),
+        required=False,
+    )
+
+    Errors = schema.List(
+        title=u"Errors",
+        value_type=schema.TextLine(title=u"Error"),
+        required=False,
+    )
+
+
+@implementer(ISampleImport)
+class SampleImport(Item):
+    """Holds information about an instrument location"""
+
+    # Catalogs where this type will be catalogued
+    _catalogs = ["portal_catalog"]
 
     def guard_validate_transition(self):
-        """We may only attempt validation if file data has been uploaded.
-        """
-        data = self.getOriginalFile()
+        """We may only attempt validation if file data has been uploaded."""
+        data = self.OriginalFile.data
         if data and len(data):
             return True
 
@@ -276,36 +177,30 @@ class SampleImport(BaseContent):
         self.validate_samples()
 
         if self.getErrors():
-            addStatusMessage(self.REQUEST, _('Validation errors.'), 'error')
+            addStatusMessage(self.REQUEST, _("Validation errors."), "error")
             transaction.commit()
             self.REQUEST.response.write(
-                '<script>document.location.href="%s/edit"</script>' % (
-                    self.absolute_url()))
+                '<script>document.location.href="%s/edit"</script>'
+                % (self.absolute_url())
+            )
         self.REQUEST.response.write(
-            '<script>document.location.href="%s/view"</script>' % (
-                self.absolute_url()))
-
-    @security.public
-    def getFilename(self):
-        """Returns the filename
-        """
-        return self.getField('Filename').get(self)
+            '<script>document.location.href="%s/view"</script>' % (self.absolute_url())
+        )
 
     def at_post_edit_script(self):
-        workflow = getToolByName(self, 'portal_workflow')
-        trans_ids = [t['id'] for t in workflow.getTransitionsFor(self)]
-        if 'validate' in trans_ids:
-            workflow.doActionFor(self, 'validate')
+        workflow = api.get_tool("portal_workflow")
+        trans_ids = [t["id"] for t in workflow.getTransitionsFor(self)]
+        if "validate" in trans_ids:
+            workflow.doActionFor(self, "validate")
 
     def workflow_script_import(self):
-        """Create objects from valid SampleImport
-        """
-        bsc = getToolByName(self, 'bika_setup_catalog')
+        """Create objects from valid SampleImport"""
+        bsc = api.get_tool("bika_setup_catalog")
         client = self.aq_parent
 
-        profiles = [x.getObject() for x in bsc(portal_type='AnalysisProfile')]
+        profiles = [x.getObject() for x in bsc(portal_type="AnalysisProfile")]
 
-        gridrows = self.schema['SampleData'].get(self)
+        gridrows = self.schema["SampleData"].get(self)
         row_cnt = 0
         for therow in gridrows:
             row = deepcopy(therow)
@@ -313,52 +208,55 @@ class SampleImport(BaseContent):
 
             # Profiles are titles, profile keys, or UIDS: convert them to UIDs.
             newprofiles = []
-            for title in row['Profiles']:
-                objects = [x for x in profiles
-                           if title in (x.getProfileKey(), x.UID(), x.Title())]
+            for title in row["Profiles"]:
+                objects = [
+                    x
+                    for x in profiles
+                    if title in (x.getProfileKey(), x.UID(), x.Title())
+                ]
                 for obj in objects:
                     newprofiles.append(obj.UID())
-            row['Profiles'] = newprofiles
+            row["Profiles"] = newprofiles
 
             # Same for analyses
-            newanalyses = set(self.get_row_services(row) +
-                              self.get_row_profile_services(row))
+            newanalyses = set(
+                self.get_row_services(row) + self.get_row_profile_services(row)
+            )
 
             # get batch
-            batch = self.schema['Batch'].get(self)
+            batch = self.schema["Batch"].get(self)
             if batch:
-                row['Batch'] = batch.UID()
+                row["Batch"] = batch.UID()
 
             # Add AR fields from schema into this row's data
-            if not row.get('ClientReference'):
-                row['ClientReference'] = self.getClientReference()
-            row['ClientOrderNumber'] = self.getClientOrderNumber()
-            contact_uid =\
-                self.getContact().UID() if self.getContact() else None
-            row['Contact'] = contact_uid
+            if not row.get("ClientReference"):
+                row["ClientReference"] = self.getClientReference()
+            row["ClientOrderNumber"] = self.getClientOrderNumber()
+            contact_uid = self.getContact().UID() if self.getContact() else None
+            row["Contact"] = contact_uid
 
             # Creating analysis request from gathered data
             create_analysisrequest(
                 client,
                 self.REQUEST,
                 row,
-                analyses=list(newanalyses),)
+                analyses=list(newanalyses),
+            )
 
         self.REQUEST.response.redirect(client.absolute_url())
 
     def get_header_values(self):
-        """Scrape the "Header" values from the original input file
-        """
-        lines = self.getOriginalFile().data.splitlines()
+        """Scrape the "Header" values from the original input file"""
+        lines = self.OriginalFile.data.splitlines()
         reader = csv.reader(lines)
         header_fields = header_data = []
         for row in reader:
             if not any(row):
                 continue
-            if row[0].strip().lower() == 'header':
+            if row[0].strip().lower() == "header":
                 header_fields = [x.strip() for x in row][1:]
                 continue
-            if row[0].strip().lower() == 'header data':
+            if row[0].strip().lower() == "header data":
                 header_data = [x.strip() for x in row][1:]
                 break
         if not (header_data or header_fields):
@@ -369,13 +267,12 @@ class SampleImport(BaseContent):
         # inject us out of here
         values = dict(zip(header_fields, header_data))
         # blank cell from sheet will probably make it in here:
-        if '' in values:
-            del (values[''])
+        if "" in values:
+            del values[""]
         return values
 
     def save_header_data(self):
-        """Save values from the file's header row into their schema fields.
-        """
+        """Save values from the file's header row into their schema fields."""
         client = self.aq_parent
 
         headers = self.get_header_values()
@@ -384,53 +281,57 @@ class SampleImport(BaseContent):
 
         # Plain header fields that can be set into plain schema fields:
         for h, f in [
-            ('File name', 'Filename'),
-            ('No of Samples', 'NrSamples'),
-            ('Client name', 'ClientName'),
-            ('Client ID', 'ClientID'),
-            ('Client Order Number', 'ClientOrderNumber'),
-            ('Client Reference', 'ClientReference')
+            ("File name", "Filename"),
+            ("No of Samples", "NrSamples"),
+            ("Client name", "ClientName"),
+            ("Client ID", "ClientID"),
+            ("Client Order Number", "ClientOrderNumber"),
+            ("Client Reference", "ClientReference"),
         ]:
+            # if f not in fields:
+            #     raise RuntimeError('ImportSample: field {} in not in schema'.format(f))
+
             v = headers.get(h, None)
             if v:
-                field = self.schema[f]
-                field.set(self, v)
-            del (headers[h])
+                setattr(self, f, v)
+            del headers[h]
 
         # Primary Contact
-        v = headers.get('Contact', None)
-        contacts = [x for x in client.objectValues('Contact')]
+        v = headers.get("Contact", None)
+        contacts = [x for x in client.objectValues("Contact")]
         contact = [c for c in contacts if c.Title() == v]
         if contact:
-            self.schema['Contact'].set(self, contact)
+            setattr(self, "Contact", contact)
         else:
-            self.error("Specified contact '%s' does not exist; using '%s'" %
-                       (v, contacts[0].Title()))
-            self.schema['Contact'].set(self, contacts[0])
-        del (headers['Contact'])
+            self.error(
+                "Specified contact '%s' does not exist; using '%s'"
+                % (v, contacts[0].Title())
+            )
+            setattr(self, "Contact", contacts[0])
+        del headers["Contact"]
 
         # CCContacts
         field_value = {
-            'CCNamesReport': '',
-            'CCEmailsReport': '',
-            'CCNamesInvoice': '',
-            'CCEmailsInvoice': ''
+            "CCNamesReport": "",
+            "CCEmailsReport": "",
+            "CCNamesInvoice": "",
+            "CCEmailsInvoice": "",
         }
         for h, f in [
             # csv header name      DataGrid Column ID
-            ('CC Names - Report', 'CCNamesReport'),
-            ('CC Emails - Report', 'CCEmailsReport'),
-            ('CC Names - Invoice', 'CCNamesInvoice'),
-            ('CC Emails - Invoice', 'CCEmailsInvoice'),
+            ("CC Names - Report", "CCNamesReport"),
+            ("CC Emails - Report", "CCEmailsReport"),
+            ("CC Names - Invoice", "CCNamesInvoice"),
+            ("CC Emails - Invoice", "CCEmailsInvoice"),
         ]:
             if h in headers:
-                values = [x.strip() for x in headers.get(h, '').split(",")]
-                field_value[f] = values if values else ''
-                del (headers[h])
-        self.schema['CCContacts'].set(self, [field_value])
+                values = [x.strip() for x in headers.get(h, "").split(",")]
+                field_value[f] = values if values else ""
+                del headers[h]
+        setattr(self, "CCContacts", [field_value])
 
         if headers:
-            unexpected = ','.join(headers.keys())
+            unexpected = ",".join(headers.keys())
             self.error("Unexpected header fields: %s" % unexpected)
 
     def get_sample_values(self):
@@ -446,8 +347,8 @@ class SampleImport(BaseContent):
             samples - All other sample rows.
 
         """
-        res = {'samples': []}
-        lines = self.getOriginalFile().data.splitlines()
+        res = {"samples": []}
+        lines = self.OriginalFile.data.splitlines()
         reader = csv.reader(lines)
         next_rows_are_sample_rows = False
         for row in reader:
@@ -457,25 +358,23 @@ class SampleImport(BaseContent):
                 vals = [x.strip() for x in row]
                 if not any(vals):
                     continue
-                res['samples'].append(zip(res['headers'], vals))
-            elif row[0].strip().lower() == 'samples':
-                res['headers'] = [x.strip() for x in row]
-            elif row[0].strip().lower() == 'total analyses or profiles':
-                res['total_analyses'] = \
-                    zip(res['headers'], [x.strip() for x in row])
+                res["samples"].append(zip(res["headers"], vals))
+            elif row[0].strip().lower() == "samples":
+                res["headers"] = [x.strip() for x in row]
+            elif row[0].strip().lower() == "total analyses or profiles":
+                res["total_analyses"] = zip(res["headers"], [x.strip() for x in row])
                 next_rows_are_sample_rows = True
         return res
 
     def get_ar(self):
-        """Create a temporary AR to fetch the fields from
-        """
+        """Create a temporary AR to fetch the fields from"""
         logger.info("*** CREATING TEMPORARY AR ***")
         return self.restrictedTraverse(
-            "portal_factory/AnalysisRequest/Request new analyses")
+            "portal_factory/AnalysisRequest/Request new analyses"
+        )
 
     def get_ar_schema(self):
-        """Return the AR schema
-        """
+        """Return the AR schema"""
         logger.info("*** GET AR SCHEMA ***")
         ar = self.get_ar()
         return ar.Schema()
@@ -484,10 +383,10 @@ class SampleImport(BaseContent):
         """Save values from the file's header row into the DataGrid columns
         after doing some very basic validation
         """
-        bsc = getToolByName(self, 'bika_setup_catalog')
-        keywords = self.bika_setup_catalog.uniqueValuesFor('getKeyword')
+        bsc = api.get_tool("bika_setup_catalog")
+        keywords = bsc.uniqueValuesFor("getKeyword")
         profiles = []
-        for p in bsc(portal_type='AnalysisProfile'):
+        for p in bsc(portal_type="AnalysisProfile"):
             p = p.getObject()
             profiles.append(p.Title())
             profiles.append(p.getProfileKey())
@@ -497,14 +396,17 @@ class SampleImport(BaseContent):
             self.error("No sample data found")
             return False
 
-        if len(self.getNrSamples()) == 0:
+        if len(self.NrSamples) == 0:
             self.error("'Number of samples' field is empty")
             return False
 
         # Incorrect number of samples
-        if len(sample_data.get('samples', [])) != int(self.getNrSamples()):
-            self.error("No of Samples: {} expected but only {} found".format(
-                self.getNrSamples(), len(sample_data.get('samples', []))))
+        if len(sample_data.get("samples", [])) != int(self.NrSamples):
+            self.error(
+                "No of Samples: {} expected but only {} found".format(
+                    self.NrSamples, len(sample_data.get("samples", []))
+                )
+            )
             return False
 
         # columns that we expect, but do not find, are listed here.
@@ -524,19 +426,19 @@ class SampleImport(BaseContent):
 
         ar_schema = self.get_ar_schema()
         row_nr = 0
-        for row in sample_data['samples']:
+        for row in sample_data["samples"]:
             row = dict(row)
             row_nr += 1
 
             # sid is just for referring the user back to row X in their
             # in put spreadsheet
-            gridrow = {'sid': row['Samples']}
-            del (row['Samples'])
+            gridrow = {"sid": row["Samples"]}
+            del row["Samples"]
 
             # We'll use this later to verify the number against selections
-            if 'Total number of Analyses or Profiles' in row:
-                nr_an = row['Total number of Analyses or Profiles']
-                del (row['Total number of Analyses or Profiles'])
+            if "Total number of Analyses or Profiles" in row:
+                nr_an = row["Total number of Analyses or Profiles"]
+                del row["Total number of Analyses or Profiles"]
             else:
                 nr_an = 0
             try:
@@ -545,86 +447,83 @@ class SampleImport(BaseContent):
                 nr_an = 0
 
             # ContainerType - not part of sample or AR schema
-            if 'ContainerType' in row:
-                title = row['ContainerType']
+            if "ContainerType" in row:
+                title = row["ContainerType"]
                 if title:
-                    obj = self.lookup(('ContainerType',),
-                                      Title=row['ContainerType'])
+                    obj = self.lookup(("ContainerType",), Title=row["ContainerType"])
                     if obj:
-                        gridrow['ContainerType'] = obj[0].UID
-                del (row['ContainerType'])
+                        gridrow["ContainerType"] = obj[0].UID
+                del row["ContainerType"]
 
             # SampleMatrix - not part of sample or AR schema
-            if 'SampleMatrix' in row:
-                title = row['SampleMatrix']
+            if "SampleMatrix" in row:
+                title = row["SampleMatrix"]
                 if title:
-                    obj = self.lookup(('SampleMatrix',),
-                                      Title=row['SampleMatrix'])
+                    obj = self.lookup(("SampleMatrix",), Title=row["SampleMatrix"])
                     if obj:
-                        gridrow['SampleMatrix'] = obj[0].UID
-                del (row['SampleMatrix'])
+                        gridrow["SampleMatrix"] = obj[0].UID
+                del row["SampleMatrix"]
 
             # match against ar schema
             for k, v in row.items():
-                if k in ['Analyses', 'Profiles']:
+                if k in ["Analyses", "Profiles"]:
                     continue
                 if k in ar_schema:
-                    del (row[k])
+                    del row[k]
                     if v:
                         try:
-                            value = self.munge_field_value(
-                                ar_schema, row_nr, k, v)
+                            value = self.munge_field_value(ar_schema, row_nr, k, v)
                             gridrow[k] = value
                         except ValueError as e:
                             errors.append(e.message)
 
             # Count and remove Keywords and Profiles from the list
-            gridrow['Analyses'] = []
+            gridrow["Analyses"] = []
             for k, v in row.items():
                 if k in keywords:
-                    del (row[k])
-                    if str(v).strip().lower() not in ('', '0', 'false'):
-                        gridrow['Analyses'].append(k)
-            gridrow['Profiles'] = []
+                    del row[k]
+                    if str(v).strip().lower() not in ("", "0", "false"):
+                        gridrow["Analyses"].append(k)
+            gridrow["Profiles"] = []
             for k, v in row.items():
                 if k in profiles:
-                    del (row[k])
-                    if str(v).strip().lower() not in ('', '0', 'false'):
-                        gridrow['Profiles'].append(k)
-            if len(gridrow['Analyses']) + len(gridrow['Profiles']) != nr_an:
+                    del row[k]
+                    if str(v).strip().lower() not in ("", "0", "false"):
+                        gridrow["Profiles"].append(k)
+            if len(gridrow["Analyses"]) + len(gridrow["Profiles"]) != nr_an:
                 errors.append(
-                    "Row %s: Number of analyses does not match provided value" %
-                    row_nr)
+                    "Row %s: Number of analyses does not match provided value" % row_nr
+                )
 
             grid_rows.append(gridrow)
 
-        self.setSampleData(grid_rows)
+        self.SampleData = grid_rows
 
         if missing:
-            self.error("SAMPLES: Missing expected fields: %s" %
-                       ','.join(missing))
+            self.error("SAMPLES: Missing expected fields: %s" % ",".join(missing))
 
         for err in errors:
             self.error(err)
 
         if unexpected:
-            self.error("Unexpected header fields: %s" %
-                       ','.join(unexpected))
+            self.error("Unexpected header fields: %s" % ",".join(unexpected))
 
     def get_batch_header_values(self):
-        """Scrape the "Batch Header" values from the original input file
-        """
-        lines = self.getOriginalFile().data.splitlines()
+        """Scrape the "Batch Header" values from the original input file"""
+        lines = self.OriginalFile.data.splitlines()
         reader = csv.reader(lines)
         batch_headers = batch_data = []
         for row in reader:
             if not any(row):
                 continue
-            if row[0].strip().lower() == 'batch header':
+            if row[0].strip().lower() == "batch header":
                 batch_headers = [x.strip() for x in row][1:]
                 continue
-            if row[0].strip().lower() == 'batch data':
+            if row[0].strip().lower() == "batch data":
                 batch_data = [x.strip() for x in row][1:]
+                # values = [i for i in batch_data if len(i) < 0]
+                # if len(values) == 0:
+                #     batch_data = []
                 break
         if not (batch_data or batch_headers):
             return None
@@ -646,24 +545,26 @@ class SampleImport(BaseContent):
         # if the Batch's Title is specified and exists, no further
         # action is required. We will just set the Batch field to
         # use the existing object.
-        batch_title = batch_headers.get('title', False)
+        batch_title = batch_headers.get("title", False)
         if batch_title:
-            existing_batch = [x for x in client.objectValues('Batch')
-                              if x.title == batch_title]
+            existing_batch = [
+                x for x in client.objectValues("Batch") if x.title == batch_title
+            ]
             if existing_batch:
-                self.setBatch(existing_batch[0])
+                self.Batch = existing_batch[0]
                 return existing_batch[0]
         # If the batch title is specified but does not exist,
         # we will attempt to create the bach now.
-        if 'title' in batch_headers:
-            if 'id' in batch_headers:
-                del (batch_headers['id'])
-            if '' in batch_headers:
-                del (batch_headers[''])
-            batch = _createObjectByType('Batch', client, tmpID())
+        if "title" in batch_headers:
+            if "id" in batch_headers:
+                del batch_headers["id"]
+            if "" in batch_headers:
+                del batch_headers[""]
+            batch = api.create(client, "Batch", id=tmpID())
             batch.processForm()
             batch.edit(**batch_headers)
-            self.setBatch(batch)
+            batch.BatchDate = DateTime()
+            self.Batch = batch
 
     def munge_field_value(self, schema, row_nr, fieldname, value):
         """Convert a spreadsheet value into a field value that fits in
@@ -679,109 +580,124 @@ class SampleImport(BaseContent):
 
         """
         field = schema[fieldname]
-        if field.type == 'boolean':
+        if field.type == "boolean":
             value = str(value).strip().lower()
-            value = '' if value in ['0', 'no', 'false', 'none'] else '1'
+            value = "" if value in ["0", "no", "false", "none"] else "1"
             return value
-        if field.type in ['reference', 'uidreference']:
+        if field.type in ["reference", "uidreference"]:
             value = str(value).strip()
             if len(value) < 2:
-                raise ValueError('Row %s: value is too short (%s=%s)' % (
-                    row_nr, fieldname, value))
+                raise ValueError(
+                    "Row %s: value is too short (%s=%s)" % (row_nr, fieldname, value)
+                )
             brains = self.lookup(field.allowed_types, Title=value)
             if not brains:
                 brains = self.lookup(field.allowed_types, UID=value)
             if not brains:
-                raise ValueError('Row %s: value is invalid (%s=%s)' % (
-                    row_nr, fieldname, value))
+                raise ValueError(
+                    "Row %s: reference value is invalid (%s=%s)"
+                    % (row_nr, fieldname, value)
+                )
             if field.multiValued:
                 return [b.UID for b in brains] if brains else []
             else:
                 return brains[0].UID if brains else None
-        if field.type == 'datetime':
+        if field.type == "datetime":
             try:
-                value = DateTime(value)
-                return ulocalized_time(
-                    value, long_format=True, time_only=False, context=self)
+                value = datetime.strptime(value, "%d/%m/%Y").date()
+                # value = DateTime(value)
+                # value = ulocalized_time(value, long_format=True, time_only=False, context=self)
+                return value
             except Exception as e:
-                raise ValueError('Row %s: value is invalid (%s=%s)' % (
-                    row_nr, fieldname, value))
+                raise ValueError(
+                    "Row %s: datetime value is invalid (%s=%s)"
+                    % (row_nr, fieldname, value)
+                )
         return str(value)
 
     def validate_headers(self):
-        """Validate headers fields from schema
-        """
+        """Validate headers fields from schema"""
 
-        pc = getToolByName(self, 'portal_catalog')
-        pu = getToolByName(self, "plone_utils")
+        pc = api.get_tool("portal_catalog")
+        pu = api.get_tool("plone_utils")
 
         client = self.aq_parent
 
         # Verify Client Name
         if self.getClientName() != client.Title():
-            self.error("%s: value is invalid (%s)." % (
-                'Client name', self.getClientName()))
+            self.error(
+                "%s: client name value is invalid (%s)."
+                % ("Client name", self.getClientName())
+            )
 
         # Verify Client ID
         if self.getClientID() != client.getClientID():
-            self.error("%s: value is invalid (%s)." % (
-                'Client ID', self.getClientID()))
+            self.error(
+                "%s: client ID value is invalid (%s)."
+                % ("Client ID", self.getClientID())
+            )
 
-        existing_sampleimports = pc(portal_type='SampleImport', review_state=['valid', 'imported'])
+        existing_sampleimports = pc(
+            portal_type="SampleImport", review_state=["valid", "imported"]
+        )
         # Verify Client Order Number
         for sampleimport in existing_sampleimports:
-            if sampleimport.UID == self.UID() \
-                    or not sampleimport.getClientOrderNumber():
+            if (
+                sampleimport.UID == self.UID()
+                or not sampleimport.getClientOrderNumber()
+            ):
                 continue
             sampleimport = sampleimport.getObject()
 
             if sampleimport.getClientOrderNumber() == self.getClientOrderNumber():
-                self.error('%s: already used by existing SampleImport.' %
-                           'ClientOrderNumber')
+                self.error(
+                    "%s: already used by existing SampleImport." % "ClientOrderNumber"
+                )
                 break
 
         # Verify Client Reference
         for sampleimport in existing_sampleimports:
-            if sampleimport.UID == self.UID() \
-                    or not sampleimport.getClientReference():
+            if sampleimport.UID == self.UID() or not sampleimport.getClientReference():
                 continue
             sampleimport = sampleimport.getObject()
             if sampleimport.getClientReference() == self.getClientReference():
-                self.error('%s: already used by existing SampleImport.' %
-                           'ClientReference')
+                self.error(
+                    "%s: already used by existing SampleImport." % "ClientReference"
+                )
                 break
 
         # getCCContacts has no value if object is not complete (eg during test)
         if self.getCCContacts():
             cc_contacts = self.getCCContacts()[0]
-            contacts = [x for x in client.objectValues('Contact')]
+            contacts = [x for x in client.objectValues("Contact")]
             contact_names = [c.Title() for c in contacts]
             # validate Contact existence in this Client
-            for k in ['CCNamesReport', 'CCNamesInvoice']:
+            for k in ["CCNamesReport", "CCNamesInvoice"]:
                 for val in cc_contacts[k]:
                     if val and val not in contact_names:
-                        self.error('%s: value is invalid (%s)' % (k, val))
+                        self.error("%s: CCNames value is invalid (%s)" % (k, val))
         else:
-            cc_contacts = {'CCNamesReport': [],
-                           'CCEmailsReport': [],
-                           'CCNamesInvoice': [],
-                           'CCEmailsInvoice': []
-                           }
+            cc_contacts = {
+                "CCNamesReport": [],
+                "CCEmailsReport": [],
+                "CCNamesInvoice": [],
+                "CCEmailsInvoice": [],
+            }
             # validate Contact existence in this Client
-            for k in ['CCEmailsReport', 'CCEmailsInvoice']:
+            for k in ["CCEmailsReport", "CCEmailsInvoice"]:
                 for val in cc_contacts.get(k, []):
                     if val and not pu.validateSingleNormalizedEmailAddress(val):
-                        self.error('%s: value is invalid (%s)' % (k, val))
+                        self.error("%s: CCEmails value is invalid (%s)" % (k, val))
 
     def validate_samples(self):
         """Scan through the SampleData values and make sure
         that each one is correct
         """
 
-        bsc = getToolByName(self, 'bika_setup_catalog')
-        keywords = bsc.uniqueValuesFor('getKeyword')
+        bsc = api.get_tool("bika_setup_catalog")
+        keywords = bsc.uniqueValuesFor("getKeyword")
         profiles = []
-        for p in bsc(portal_type='AnalysisProfile'):
+        for p in bsc(portal_type="AnalysisProfile"):
             p = p.getObject()
             profiles.append(p.Title())
             profiles.append(p.getProfileKey())
@@ -793,73 +709,88 @@ class SampleImport(BaseContent):
 
             # validate against sample and ar schemas
             for k, v in gridrow.items():
-                if k in ['Analysis', 'Profiles']:
+                if k in ["Analysis", "Profiles"]:
                     break
                 if k in ar_schema:
                     try:
-                        self.validate_against_schema(
-                            ar_schema, row_nr, k, v)
+                        self.validate_against_schema(ar_schema, row_nr, k, v)
                     except ValueError as e:
                         self.error(e.message)
 
             an_cnt = 0
-            for v in gridrow['Analyses']:
+            for v in gridrow["Analyses"]:
                 if v and v not in keywords:
-                    self.error("Row %s: value is invalid (%s=%s)" %
-                               ('Analysis keyword', row_nr, v))
+                    self.error(
+                        "Row %s: Analyses value is invalid (%s=%s)"
+                        % ("Analysis keyword", row_nr, v)
+                    )
                 else:
                     an_cnt += 1
-            for v in gridrow['Profiles']:
+            for v in gridrow["Profiles"]:
                 if v and v not in profiles:
-                    self.error("Row %s: value is invalid (%s=%s)" %
-                               ('Profile Title', row_nr, v))
+                    self.error(
+                        "Row %s: Profiles value is invalid (%s=%s)"
+                        % ("Profile Title", row_nr, v)
+                    )
                 else:
                     an_cnt += 1
             if not an_cnt:
                 self.error("Row %s: No valid analyses or profiles" % row_nr)
 
     def validate_against_schema(self, schema, row_nr, fieldname, value):
-        """
-        """
+        """ """
         field = schema[fieldname]
-        if field.type == 'boolean':
+        if field.type == "boolean":
             value = str(value).strip().lower()
             return value
-        if field.type == 'reference':
+        if field.type == "reference":
             value = str(value).strip()
             if field.required and not value:
-                raise ValueError("Row %s: %s field requires a value" % (
-                    row_nr, fieldname))
+                raise ValueError(
+                    "Row %s: %s field requires a value" % (row_nr, fieldname)
+                )
             if not value:
                 return value
             brains = self.lookup(field.allowed_types, UID=value)
             if not brains:
-                raise ValueError("Row %s: value is invalid (%s=%s)" % (
-                    row_nr, fieldname, value))
+                raise ValueError(
+                    "Row %s: schema reference value is invalid (%s=%s)"
+                    % (row_nr, fieldname, value)
+                )
             if field.multiValued:
                 return [b.UID for b in brains] if brains else []
             else:
                 return brains[0].UID if brains else None
-        if field.type == 'datetime':
+        if field.type == "datetime":
             try:
-                ulocalized_time(DateTime(value), long_format=True,
-                                time_only=False, context=self)
+                ulocalized_time(
+                    DateTime(value), long_format=True, time_only=False, context=self
+                )
             except Exception as e:
-                raise ValueError('Row %s: value is invalid (%s=%s)' % (
-                    row_nr, fieldname, value))
+                raise ValueError(
+                    "Row %s: schema datetime value is invalid (%s=%s)"
+                    % (row_nr, fieldname, value)
+                )
         return value
 
     def lookup(self, allowed_types, **kwargs):
         """Lookup an object of type (allowed_types).  kwargs is sent
         directly to the catalog.
         """
-        at = getToolByName(self, 'archetype_tool')
+        # schema = getUtility(IDexterityFTI, name='SampleImport').lookupSchema()
+        # fields = schema.names()
+
+        at = api.get_tool("archetype_tool")
         if type(allowed_types) not in (list, tuple):
             allowed_types = [allowed_types]
+
+        if len(allowed_types) > 1:
+            raise RuntimeError("lookup will only return first type!")
+
         for portal_type in allowed_types:
             catalog = at.catalog_map.get(portal_type, [None])[0]
-            catalog = getToolByName(self, catalog)
-            kwargs['portal_type'] = portal_type
+            catalog = api.get_tool(catalog)
+            kwargs["portal_type"] = portal_type
             brains = catalog(**kwargs)
             if brains:
                 return brains
@@ -868,14 +799,14 @@ class SampleImport(BaseContent):
         """Return a list of services which are referenced in Analyses.
         values may be UID, Title or Keyword.
         """
-        bsc = getToolByName(self, 'bika_setup_catalog')
+        bsc = api.get_tool("bika_setup_catalog")
         services = set()
-        for val in row.get('Analyses', []):
-            brains = bsc(portal_type='AnalysisService', getKeyword=val)
+        for val in row.get("Analyses", []):
+            brains = bsc(portal_type="AnalysisService", getKeyword=val)
             if not brains:
-                brains = bsc(portal_type='AnalysisService', title=val)
+                brains = bsc(portal_type="AnalysisService", title=val)
             if not brains:
-                brains = bsc(portal_type='AnalysisService', UID=val)
+                brains = bsc(portal_type="AnalysisService", UID=val)
             if brains:
                 services.add(brains[0].UID)
             else:
@@ -886,12 +817,13 @@ class SampleImport(BaseContent):
         """Return a list of services which are referenced in profiles
         values may be UID, Title or ProfileKey.
         """
-        bsc = getToolByName(self, 'bika_setup_catalog')
+        bsc = api.get_tool("bika_setup_catalog")
         services = set()
-        profiles = [x.getObject() for x in bsc(portal_type='AnalysisProfile')]
-        for val in row.get('Profiles', []):
-            objects = [x for x in profiles
-                       if val in (x.getProfileKey(), x.UID(), x.Title())]
+        profiles = [x.getObject() for x in bsc(portal_type="AnalysisProfile")]
+        for val in row.get("Profiles", []):
+            objects = [
+                x for x in profiles if val in (x.getProfileKey(), x.UID(), x.Title())
+            ]
             if objects:
                 for service in objects[0].getService():
                     services.add(service.UID())
@@ -901,34 +833,37 @@ class SampleImport(BaseContent):
 
     def Vocabulary_SamplePoint(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = 'bika_setup_catalog'
+        vocabulary.catalog = "bika_setup_catalog"
         folders = [self.bika_setup.bika_samplepoints]
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
-        return vocabulary(allow_blank=True, portal_type='SamplePoint')
+        return vocabulary(allow_blank=True, portal_type="SamplePoint")
 
     def Vocabulary_SampleMatrix(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = 'bika_setup_catalog'
-        return vocabulary(allow_blank=True, portal_type='SampleMatrix')
+        vocabulary.catalog = "bika_setup_catalog"
+        return vocabulary(allow_blank=True, portal_type="SampleMatrix")
 
     def Vocabulary_SampleType(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = 'bika_setup_catalog'
+        vocabulary.catalog = "bika_setup_catalog"
         folders = [self.bika_setup.bika_sampletypes]
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
-        return vocabulary(allow_blank=True, portal_type='SampleType')
+        return vocabulary(allow_blank=True, portal_type="SampleType")
 
     def Vocabulary_ContainerType(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = 'bika_setup_catalog'
-        return vocabulary(allow_blank=True, portal_type='ContainerType')
+        vocabulary.catalog = "bika_setup_catalog"
+        return vocabulary(allow_blank=True, portal_type="ContainerType")
 
     def error(self, msg):
-        errors = list(self.getErrors())
+        errors = self.Errors
+        if errors is None:
+            errors = []
+        if type(errors) != list:
+            errors = [
+                errors,
+            ]
         errors.append(msg)
-        self.setErrors(errors)
-
-
-registerType(SampleImport, PRODUCT_NAME)
+        self.Errors = errors

@@ -34,7 +34,11 @@ setup(
     zip_safe=False,
     install_requires=[
         "setuptools",
-        "senaite.lims>=1.3.2",
+        "senaite.lims>=2.0.0",
+        "senaite.app.supermodel>=2.0.0",
+        "plone.formwidget.contenttree",
+        "plone.app.relationfield",
+        "collective.z3cform.datagridfield",
     ],
     extras_require={
         "test": [

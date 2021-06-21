@@ -1,48 +1,76 @@
-<?xml version="1.0"?>
-<object name="SampleImport"
-        meta_type="Factory-based Type Information"
-        xmlns:i18n="http://xml.zope.org/namespaces/i18n"
-        i18n:domain="senaite.sampleimporter">
- <property name="title">SampleImport</property>
- <property name="description"></property>
- <property name="content_icon">++resource++senaite.sampleimporter.static/img/sampleimport.png</property>
- <property name="content_meta_type">SampleImport</property>
- <property name="product">senaite.sampleimporter</property>
- <property name="factory">addSampleImport</property>
- <property name="global_allow">False</property>
- <property name="filter_content_types">True</property>
- <property name="allowed_content_types">
- </property>
- <property name="allow_discussion">False</property>
- <property name="default_view">sampleimport_view</property>
+<?xml version="1.0" encoding="UTF-8"?>
+<object name="SampleImport" meta_type="Dexterity FTI"
+        i18n:domain="senaite.sampleimporter"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
- <alias from="(Default)" to="base_view"/>
- <alias from="edit" to="base_edit"/>
- <alias from="view" to="base_view"/>
+  <!-- Title and Description -->
+  <property name="title" i18n:translate="">Sample Import</property>
+  <property name="description" i18n:translate=""/>
 
- <action title="Edit"
-         action_id="edit"
-         category="object"
-         icon_expr=""
-         link_target=""
-         url_expr="string:${object_url}/base_edit"
-         i18n:attributes="title"
-         i18n:domain="plone"
-         visible="True">
-     <permission value='senaite.core: Manage Analysis Requests'/>
- </action>
+  <!-- content-type icon -->
+  <!--
+  <property name="icon_expr">++resource++senaite.sampleimporter.static/img/sampleimport.png</property>
+  -->
 
- <action title="View"
-         action_id="view"
-         category="object"
-         condition_expr=""
-         icon_expr=""
-         link_target=""
-         url_expr="string:${object_url}/view"
-         i18n:attributes="title"
-         i18n:domain="plone"
-         visible="True">
-  <permission value="View"/>
- </action>
+  <!-- factory name; usually the same as type name -->
+  <property name="factory">SampleImport</property>
+
+  <!-- URL TALES expression to add an item TTW -->
+  <property name="add_view_expr">string:${folder_url}/++add++SampleImport</property>
+
+  <property name="link_target"/>
+  <property name="immediate_view">view</property>
+
+  <!-- Is this item addable globally, or is it restricted? -->
+  <property name="global_allow">False</property>
+
+  <!-- If we're a container, should we filter addable content types? -->
+  <property name="filter_content_types">True</property>
+  <!-- If filtering, what's allowed -->
+  <property name="allowed_content_types">
+  </property>
+
+  <property name="allow_discussion">False</property>
+
+  <!-- what are our available view methods, and what's the default? -->
+  <property name="default_view">view</property>
+  <!-- the view methods below will be selectable via the display tab -->
+  <property name="view_methods">
+    <element value="view"/>
+  </property>
+  <property name="default_view_fallback">False</property>
+
+  <!-- permission required to add an item of this type -->
+  <property name="add_permission">cmf.AddPortalContent</property>
+
+  <!-- Python class for content items of this sort -->
+  <property name="schema">senaite.sampleimporter.content.sampleimport.ISampleImport</property>
+  <property name="klass">senaite.sampleimporter.content.sampleimport.SampleImport</property>
+
+  <!-- Dexterity behaviours for this type -->
+  <property name="behaviors">
+    <element value="bika.lims.interfaces.IAutoGenerateID"/>
+    <element value="bika.lims.interfaces.IMultiCatalogBehavior"/>
+    <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
+    <element value="plone.app.referenceablebehavior.referenceable.IReferenceable" />
+  </property>
+
+  <!-- Action aliases -->
+  <alias from="(Default)" to="(dynamic view)"/>
+  <alias from="sharing" to="@@sharing"/>
+  <alias from="view" to="(selected layout)"/>
+
+  <!-- View -->
+  <action title="View"
+          action_id="view"
+          category="object"
+          condition_expr=""
+          description=""
+          icon_expr=""
+          link_target=""
+          url_expr="string:${object_url}"
+          visible="True">
+    <permission value="View"/>
+  </action>
 
 </object>

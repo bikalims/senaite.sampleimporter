@@ -11,6 +11,7 @@
   <!-- Be sure to install the following dependencies if not yet installed -->
   <dependencies>
     <dependency>profile-senaite.lims:default</dependency>
-    <dependency>profile-Products.DataGridField:default</dependency>
+    <dependency>profile-plone.app.relationfield:default</dependency>
+    <dependency>profile-collective.z3cform.datagridfield:default</dependency>
   </dependencies>
 </metadata>
