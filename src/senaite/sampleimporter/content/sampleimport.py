@@ -256,7 +256,7 @@ class SampleImport(BaseContent):
         """We may only attempt validation if file data has been uploaded.
         """
         data = self.getOriginalFile()
-        if data and len(data):
+        if data and data.getSize():
             return True
 
     # TODO Workflow - SampleImport - Remove
@@ -293,10 +293,10 @@ class SampleImport(BaseContent):
         return self.getField('Filename').get(self)
 
     def at_post_edit_script(self):
-        workflow = getToolByName(self, 'portal_workflow')
-        trans_ids = [t['id'] for t in workflow.getTransitionsFor(self)]
-        if 'validate' in trans_ids:
-            workflow.doActionFor(self, 'validate')
+        workflow = api.get_tool("portal_workflow")
+        trans_ids = [t["id"] for t in workflow.getTransitionsFor(self)]
+        if "validate" in trans_ids:
+            workflow.doActionFor(self, "validate")
 
     def workflow_script_import(self):
         """Create objects from valid SampleImport"""
@@ -660,10 +660,11 @@ class SampleImport(BaseContent):
                 del (batch_headers['id'])
             if '' in batch_headers:
                 del (batch_headers[''])
-            batch = _createObjectByType('Batch', client, tmpID())
+            batch = api.create(client, "Batch", id=tmpID())
             batch.processForm()
             batch.edit(**batch_headers)
-            self.setBatch(batch)
+            batch.BatchDate = DateTime()
+            self.Batch = batch
 
     def munge_field_value(self, schema, row_nr, fieldname, value):
         """Convert a spreadsheet value into a field value that fits in
@@ -712,8 +713,8 @@ class SampleImport(BaseContent):
         """Validate headers fields from schema
         """
 
-        pc = getToolByName(self, 'portal_catalog')
-        pu = getToolByName(self, "plone_utils")
+        pc = api.get_tool("portal_catalog")
+        pu = api.get_tool("plone_utils")
 
         client = self.aq_parent
 

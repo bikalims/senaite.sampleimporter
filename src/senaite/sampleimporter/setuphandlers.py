@@ -85,7 +85,7 @@ def post_install(portal_setup):
     client_fti.allowed_content_types = allowed_types
 
     # Setup catalogs
-    setup_core_catalogs(portal)
+    # setup_core_catalogs(portal)
 
     # Reindex new content types
     reindex_new_content_types(portal)
