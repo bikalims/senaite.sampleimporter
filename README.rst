@@ -124,7 +124,7 @@ Please, read `Contributing to senaite.sampleimporter document
 
 User manual
 ===========
-`Batch Sample Import <https://www.bikalims.org/manual/batching/bulk-ar-import-from-spreadsheet>`
+ `Community site Batch Sample Import <https://www.bikalims.org/manual/batching/bulk-ar-import-from-spreadsheet>`_
 
 Feedback and support
 ====================
