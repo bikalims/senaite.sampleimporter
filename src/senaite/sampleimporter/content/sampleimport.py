@@ -59,6 +59,7 @@ from senaite.sampleimporter import logger
 from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import senaiteMessageFactory as _
 from zope.interface import implements
+from bika.lims import api
 
 
 OriginalFile = BlobFileField(

@@ -117,7 +117,7 @@ class SampleImportsView(BikaListingView):
             else:
                 items[x]['replace']['Title'] = "<a href='%s/view'>%s</a>" % (
                     obj.absolute_url(), items[x]['Title'])
-            items[x]['Creator'] = obj.Creator()
+            items[x]['Creator'] = obj.Creator
             items[x]['Filename'] = obj.getFilename()
             parent = obj.aq_parent
             items[x]['Client'] = parent if IClient.providedBy(parent) else ''
