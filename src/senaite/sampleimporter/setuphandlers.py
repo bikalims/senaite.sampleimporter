@@ -20,8 +20,9 @@
 
 from Products.DCWorkflow.Guard import Guard
 from bika.lims import api
-from bika.lims.catalog import setup_catalogs
-from bika.lims.catalog import getCatalogDefinitions
+from senaite.core.catalog import setup_catalog
+from senaite.core.setuphandlers import setup_core_catalogs
+# from bika.lims.catalog import getCatalogDefinitions
 from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import PROFILE_ID
 from senaite.sampleimporter import logger
@@ -84,7 +85,7 @@ def post_install(portal_setup):
     client_fti.allowed_content_types = allowed_types
 
     # Setup catalogs
-    setup_catalogs(portal, getCatalogDefinitions())
+    setup_core_catalogs(portal)
 
     # Reindex new content types
     reindex_new_content_types(portal)
