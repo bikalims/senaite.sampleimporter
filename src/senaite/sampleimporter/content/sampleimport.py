@@ -195,7 +195,7 @@ class SampleImport(Item):
 
     def workflow_script_import(self):
         """Create objects from valid SampleImport"""
-        bsc = api.get_tool("bika_setup_catalog")
+        bsc = api.get_tool("senaite_catalog_setup")
         client = self.aq_parent
 
         profiles = [x.getObject() for x in bsc(portal_type="AnalysisProfile")]
@@ -383,7 +383,7 @@ class SampleImport(Item):
         """Save values from the file's header row into the DataGrid columns
         after doing some very basic validation
         """
-        bsc = api.get_tool("bika_setup_catalog")
+        bsc = api.get_tool("senaite_catalog_setup")
         keywords = bsc.uniqueValuesFor("getKeyword")
         profiles = []
         for p in bsc(portal_type="AnalysisProfile"):
@@ -694,7 +694,7 @@ class SampleImport(Item):
         that each one is correct
         """
 
-        bsc = api.get_tool("bika_setup_catalog")
+        bsc = api.get_tool("senaite_catalog_setup")
         keywords = bsc.uniqueValuesFor("getKeyword")
         profiles = []
         for p in bsc(portal_type="AnalysisProfile"):
@@ -799,7 +799,7 @@ class SampleImport(Item):
         """Return a list of services which are referenced in Analyses.
         values may be UID, Title or Keyword.
         """
-        bsc = api.get_tool("bika_setup_catalog")
+        bsc = api.get_tool("senaite_catalog_setup")
         services = set()
         for val in row.get("Analyses", []):
             brains = bsc(portal_type="AnalysisService", getKeyword=val)
@@ -817,7 +817,7 @@ class SampleImport(Item):
         """Return a list of services which are referenced in profiles
         values may be UID, Title or ProfileKey.
         """
-        bsc = api.get_tool("bika_setup_catalog")
+        bsc = api.get_tool("senaite_catalog_setup")
         services = set()
         profiles = [x.getObject() for x in bsc(portal_type="AnalysisProfile")]
         for val in row.get("Profiles", []):
@@ -833,7 +833,7 @@ class SampleImport(Item):
 
     def Vocabulary_SamplePoint(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "bika_setup_catalog"
+        vocabulary.catalog = "senaite_catalog_setup"
         folders = [self.bika_setup.bika_samplepoints]
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
@@ -841,12 +841,12 @@ class SampleImport(Item):
 
     def Vocabulary_SampleMatrix(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "bika_setup_catalog"
+        vocabulary.catalog = "senaite_catalog_setup"
         return vocabulary(allow_blank=True, portal_type="SampleMatrix")
 
     def Vocabulary_SampleType(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "bika_setup_catalog"
+        vocabulary.catalog = "senaite_catalog_setup"
         folders = [self.bika_setup.bika_sampletypes]
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
@@ -854,7 +854,7 @@ class SampleImport(Item):
 
     def Vocabulary_ContainerType(self):
         vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "bika_setup_catalog"
+        vocabulary.catalog = "senaite_catalog_setup"
         return vocabulary(allow_blank=True, portal_type="ContainerType")
 
     def error(self, msg):
