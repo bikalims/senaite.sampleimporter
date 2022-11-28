@@ -78,7 +78,7 @@ class SampleImportsView(BikaListingView):
             "Client": {"title": _("Client")},
             "Contact": {"title": _("Contact")},
             "Filename": {"title": _("Filename")},
-            "Creator": {"title": _("Date Created")},
+            "Creator": {"title": _("Creator")},
             "DateCreated": {"title": _("Date Created")},
             "DateValidated": {"title": _("Date Validated")},
             "DateImported": {"title": _("Date Imported")},
@@ -138,7 +138,11 @@ class SampleImportsView(BikaListingView):
                 parent.absolute_url(),
                 parent.Title(),
             )
-            items[x]["Contact"] = obj.Contact
+            items[x]["Contact"] = obj.getContact()
+            items[x]["replace"]["Contact"] = "<a href='%s'>%s</a>" % (
+                obj.getContact().absolute_url(),
+                obj.getContact().Title(),
+            )
             items[x]["DateCreated"] = ulocalized_time(
                 obj.created(), long_format=True, time_only=False, context=obj
             )
@@ -154,6 +158,16 @@ class ClientSampleImportsView(SampleImportsView):
     def __init__(self, context, request):
         super(ClientSampleImportsView, self).__init__(context, request)
         self.contentFilter["path"] = {"query": "/".join(context.getPhysicalPath())}
+
+        self.columns = {
+            "Title": {"title": _("Title")},
+            "Filename": {"title": _("Filename")},
+            "Creator": {"title": _("Creator")},
+            "DateCreated": {"title": _("Date Created")},
+            "DateValidated": {"title": _("Date Validated")},
+            "DateImported": {"title": _("Date Imported")},
+            "state_title": {"title": _("State")},
+        }
 
         self.review_states = [
             {
