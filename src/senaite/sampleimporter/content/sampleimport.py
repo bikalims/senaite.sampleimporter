@@ -144,7 +144,7 @@ Batch = ReferenceField(
     widget=bReferenceWidget(
         label=_('Batch'),
         visible=True,
-        catalog_name='bika_catalog',
+        catalog_name='senaite_catalog',
         base_query={'review_state': 'open'},
         showOn=True,
     ),
