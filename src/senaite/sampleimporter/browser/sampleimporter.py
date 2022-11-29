@@ -77,7 +77,6 @@ class SampleImportsView(BikaListingView):
             "Title": {"title": _("Title")},
             "Client": {"title": _("Client")},
             "Contact": {"title": _("Contact")},
-            "Filename": {"title": _("Filename")},
             "Creator": {"title": _("Creator")},
             "DateCreated": {"title": _("Date Created")},
             "DateValidated": {"title": _("Date Validated")},
@@ -92,7 +91,6 @@ class SampleImportsView(BikaListingView):
                 "columns": [
                     "Title",
                     "Creator",
-                    "Filename",
                     "Client",
                     "Contact",
                     "DateCreated",
@@ -108,7 +106,6 @@ class SampleImportsView(BikaListingView):
                 "columns": [
                     "Title",
                     "Creator",
-                    "Filename",
                     "Client",
                     "Contact",
                     "DateCreated",
@@ -131,7 +128,6 @@ class SampleImportsView(BikaListingView):
                 items[x]["Title"],
             )
             items[x]["Creator"] = obj.Creator()
-            items[x]["Filename"] = obj.getFilename()
             parent = obj.aq_parent
             items[x]["Client"] = parent if IClient.providedBy(parent) else ""
             items[x]["replace"]["Client"] = "<a href='%s'>%s</a>" % (
@@ -161,7 +157,6 @@ class ClientSampleImportsView(SampleImportsView):
 
         self.columns = {
             "Title": {"title": _("Title")},
-            "Filename": {"title": _("Filename")},
             "Creator": {"title": _("Creator")},
             "DateCreated": {"title": _("Date Created")},
             "DateValidated": {"title": _("Date Validated")},
@@ -177,7 +172,6 @@ class ClientSampleImportsView(SampleImportsView):
                 "columns": [
                     "Title",
                     "Creator",
-                    "Filename",
                     "DateCreated",
                     "DateValidated",
                     "DateImported",
@@ -191,7 +185,6 @@ class ClientSampleImportsView(SampleImportsView):
                 "columns": [
                     "Title",
                     "Creator",
-                    "Filename",
                     "DateCreated",
                     "DateValidated",
                     "DateImported",

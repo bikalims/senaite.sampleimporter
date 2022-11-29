@@ -73,15 +73,7 @@ Filename = StringField(
     'Filename',
     widget=StringWidget(
         label=_('Original Filename'),
-        visible=True
-    ),
-)
-
-NrSamples = StringField(
-    'NrSamples',
-    widget=StringWidget(
-        label=_('Number of samples'),
-        visible=True
+        visible=False
     ),
 )
 
@@ -98,14 +90,6 @@ ClientID = StringField(
     searchable=True,
     widget=StringWidget(
         label=_('Client ID'),
-    ),
-)
-
-ClientOrderNumber = StringField(
-    'ClientOrderNumber',
-    searchable=True,
-    widget=StringWidget(
-        label=_('Client Order Number'),
     ),
 )
 
@@ -148,31 +132,6 @@ Batch = ReferenceField(
         base_query={'review_state': 'open'},
         showOn=True,
     ),
-)
-
-CCContacts = DataGridField(
-    'CCContacts',
-    allow_insert=False,
-    allow_delete=False,
-    allow_reorder=False,
-    allow_empty_rows=False,
-    columns=('CCNamesReport',
-             'CCEmailsReport',
-             'CCNamesInvoice',
-             'CCEmailsInvoice'),
-    default=[{'CCNamesReport': [],
-              'CCEmailsReport': [],
-              'CCNamesInvoice': [],
-              'CCEmailsInvoice': []
-              }],
-    widget=DataGridWidget(
-        columns={
-            'CCNamesReport': LinesColumn('Report CC Contacts'),
-            'CCEmailsReport': LinesColumn('Report CC Emails'),
-            'CCNamesInvoice': LinesColumn('Invoice CC Contacts'),
-            'CCEmailsInvoice': LinesColumn('Invoice CC Emails')
-        }
-    )
 )
 
 SampleData = DataGridField(
@@ -225,13 +184,10 @@ Errors = LinesField(
 schema = BikaSchema.copy() + Schema((
     OriginalFile,
     Filename,
-    NrSamples,
     ClientName,
     ClientID,
-    ClientOrderNumber,
     ClientReference,
     Contact,
-    CCContacts,
     Batch,
     SampleData,
     Errors,
@@ -332,7 +288,6 @@ class SampleImport(BaseContent):
             # Add AR fields from schema into this row's data
             if not row.get('ClientReference'):
                 row['ClientReference'] = self.getClientReference()
-            row['ClientOrderNumber'] = self.getClientOrderNumber()
             contact_uid =\
                 self.getContact().UID() if self.getContact() else None
             row['Contact'] = contact_uid
@@ -384,11 +339,8 @@ class SampleImport(BaseContent):
 
         # Plain header fields that can be set into plain schema fields:
         for h, f in [
-            ('File name', 'Filename'),
-            ('No of Samples', 'NrSamples'),
             ('Client name', 'ClientName'),
             ('Client ID', 'ClientID'),
-            ('Client Order Number', 'ClientOrderNumber'),
             ('Client Reference', 'ClientReference')
         ]:
             v = headers.get(h, None)
@@ -409,26 +361,6 @@ class SampleImport(BaseContent):
             self.schema['Contact'].set(self, contacts[0])
         del (headers['Contact'])
 
-        # CCContacts
-        field_value = {
-            'CCNamesReport': '',
-            'CCEmailsReport': '',
-            'CCNamesInvoice': '',
-            'CCEmailsInvoice': ''
-        }
-        for h, f in [
-            # csv header name      DataGrid Column ID
-            ('CC Names - Report', 'CCNamesReport'),
-            ('CC Emails - Report', 'CCEmailsReport'),
-            ('CC Names - Invoice', 'CCNamesInvoice'),
-            ('CC Emails - Invoice', 'CCEmailsInvoice'),
-        ]:
-            if h in headers:
-                values = [x.strip() for x in headers.get(h, '').split(",")]
-                field_value[f] = values if values else ''
-                del (headers[h])
-        self.schema['CCContacts'].set(self, [field_value])
-
         if headers:
             unexpected = ','.join(headers.keys())
             self.error("Unexpected header fields: %s" % unexpected)
@@ -441,7 +373,7 @@ class SampleImport(BaseContent):
             headers - row with "Samples" in column 0.  These headers are
                used as dictionary keys in the rows below.
             prices - Row with "Analysis Price" in column 0.
-            total_analyses - Row with "Total analyses" in colmn 0
+            total_analyses - Row with "Total analyses" in colmn 0 (removed)
             price_totals - Row with "Total price excl Tax" in column 0
             samples - All other sample rows.
 
@@ -460,10 +392,7 @@ class SampleImport(BaseContent):
                 res['samples'].append(zip(res['headers'], vals))
             elif row[0].strip().lower() == 'samples':
                 res['headers'] = [x.strip() for x in row]
-            elif row[0].strip().lower() == 'total analyses or profiles':
-                res['total_analyses'] = \
-                    zip(res['headers'], [x.strip() for x in row])
-                next_rows_are_sample_rows = True
+                next_rows_are_sample_rows = True 
         return res
 
     def get_ar(self):
@@ -497,16 +426,6 @@ class SampleImport(BaseContent):
             self.error("No sample data found")
             return False
 
-        if len(self.getNrSamples()) == 0:
-            self.error("'Number of samples' field is empty")
-            return False
-
-        # Incorrect number of samples
-        if len(sample_data.get('samples', [])) != int(self.getNrSamples()):
-            self.error("No of Samples: {} expected but only {} found".format(
-                self.getNrSamples(), len(sample_data.get('samples', []))))
-            return False
-
         # columns that we expect, but do not find, are listed here.
         # we report on them only once, after looping through sample rows.
         missing = set()
@@ -532,17 +451,6 @@ class SampleImport(BaseContent):
             # in put spreadsheet
             gridrow = {'sid': row['Samples']}
             del (row['Samples'])
-
-            # We'll use this later to verify the number against selections
-            if 'Total number of Analyses or Profiles' in row:
-                nr_an = row['Total number of Analyses or Profiles']
-                del (row['Total number of Analyses or Profiles'])
-            else:
-                nr_an = 0
-            try:
-                nr_an = int(nr_an)
-            except ValueError:
-                nr_an = 0
 
             # ContainerType - not part of sample or AR schema
             if 'ContainerType' in row:
@@ -591,10 +499,6 @@ class SampleImport(BaseContent):
                     del (row[k])
                     if str(v).strip().lower() not in ('', '0', 'false'):
                         gridrow['Profiles'].append(k)
-            if len(gridrow['Analyses']) + len(gridrow['Profiles']) != nr_an:
-                errors.append(
-                    "Row %s: Number of analyses does not match provided value" %
-                    row_nr)
 
             grid_rows.append(gridrow)
 
@@ -729,17 +633,6 @@ class SampleImport(BaseContent):
                 'Client ID', self.getClientID()))
 
         existing_sampleimports = pc(portal_type='SampleImport', review_state=['valid', 'imported'])
-        # Verify Client Order Number
-        for sampleimport in existing_sampleimports:
-            if sampleimport.UID == self.UID() \
-                    or not sampleimport.getClientOrderNumber():
-                continue
-            sampleimport = sampleimport.getObject()
-
-            if sampleimport.getClientOrderNumber() == self.getClientOrderNumber():
-                self.error('%s: already used by existing SampleImport.' %
-                           'ClientOrderNumber')
-                break
 
         # Verify Client Reference
         for sampleimport in existing_sampleimports:
@@ -752,27 +645,6 @@ class SampleImport(BaseContent):
                            'ClientReference')
                 break
 
-        # getCCContacts has no value if object is not complete (eg during test)
-        if self.getCCContacts():
-            cc_contacts = self.getCCContacts()[0]
-            contacts = [x for x in client.objectValues('Contact')]
-            contact_names = [c.Title() for c in contacts]
-            # validate Contact existence in this Client
-            for k in ['CCNamesReport', 'CCNamesInvoice']:
-                for val in cc_contacts[k]:
-                    if val and val not in contact_names:
-                        self.error('%s: value is invalid (%s)' % (k, val))
-        else:
-            cc_contacts = {'CCNamesReport': [],
-                           'CCEmailsReport': [],
-                           'CCNamesInvoice': [],
-                           'CCEmailsInvoice': []
-                           }
-            # validate Contact existence in this Client
-            for k in ['CCEmailsReport', 'CCEmailsInvoice']:
-                for val in cc_contacts.get(k, []):
-                    if val and not pu.validateSingleNormalizedEmailAddress(val):
-                        self.error('%s: value is invalid (%s)' % (k, val))
 
     def validate_samples(self):
         """Scan through the SampleData values and make sure
