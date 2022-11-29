@@ -73,7 +73,15 @@ Filename = StringField(
     'Filename',
     widget=StringWidget(
         label=_('Original Filename'),
-        visible=False
+        visible=True
+    ),
+)
+
+NrSamples = StringField(
+    'NrSamples',
+    widget=StringWidget(
+        label=_('Number of samples'),
+        visible=True
     ),
 )
 
@@ -82,6 +90,7 @@ ClientName = StringField(
     searchable=True,
     widget=StringWidget(
         label=_("Client Name"),
+        visible=False
     ),
 )
 
@@ -90,14 +99,7 @@ ClientID = StringField(
     searchable=True,
     widget=StringWidget(
         label=_('Client ID'),
-    ),
-)
-
-ClientReference = StringField(
-    'ClientReference',
-    searchable=True,
-    widget=StringWidget(
-        label=_('Client Reference'),
+        visible=False
     ),
 )
 
@@ -142,11 +144,8 @@ SampleData = DataGridField(
     allow_empty_rows=False,
     allow_oddeven=True,
     columns=('ClientSampleID',
-             'ClientReference',
-             'SamplingDate',
              'DateSampled',
              'SamplePoint',
-             'SampleMatrix',
              'SampleType',  # not a schema field!
              'ContainerType',  # not a schema field!
              'Analyses',  # not a schema field!
@@ -156,13 +155,9 @@ SampleData = DataGridField(
         label=_('Samples'),
         columns={
             'ClientSampleID': Column('Sample ID'),
-            'SamplingDate': DateColumn('Sampling Date'),
             'DateSampled': DateColumn('Date Sampled'),
-            'ClientReference': Column('Client Reference'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
-            'SampleMatrix': SelectColumn(
-                'Sample Matrix', vocabulary='Vocabulary_SampleMatrix'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
             'ContainerType': SelectColumn(
@@ -184,9 +179,9 @@ Errors = LinesField(
 schema = BikaSchema.copy() + Schema((
     OriginalFile,
     Filename,
+    NrSamples,
     ClientName,
     ClientID,
-    ClientReference,
     Contact,
     Batch,
     SampleData,
@@ -286,8 +281,6 @@ class SampleImport(BaseContent):
                 row['Batch'] = batch.UID()
 
             # Add AR fields from schema into this row's data
-            if not row.get('ClientReference'):
-                row['ClientReference'] = self.getClientReference()
             contact_uid =\
                 self.getContact().UID() if self.getContact() else None
             row['Contact'] = contact_uid
@@ -341,7 +334,6 @@ class SampleImport(BaseContent):
         for h, f in [
             ('Client name', 'ClientName'),
             ('Client ID', 'ClientID'),
-            ('Client Reference', 'ClientReference')
         ]:
             v = headers.get(h, None)
             if v:
@@ -426,6 +418,7 @@ class SampleImport(BaseContent):
             self.error("No sample data found")
             return False
 
+        self.schema['NrSamples'].set(self,len(sample_data.get('samples', [])))
         # columns that we expect, but do not find, are listed here.
         # we report on them only once, after looping through sample rows.
         missing = set()
@@ -461,16 +454,6 @@ class SampleImport(BaseContent):
                     if obj:
                         gridrow['ContainerType'] = obj[0].UID
                 del (row['ContainerType'])
-
-            # SampleMatrix - not part of sample or AR schema
-            if 'SampleMatrix' in row:
-                title = row['SampleMatrix']
-                if title:
-                    obj = self.lookup(('SampleMatrix',),
-                                      Title=row['SampleMatrix'])
-                    if obj:
-                        gridrow['SampleMatrix'] = obj[0].UID
-                del (row['SampleMatrix'])
 
             # match against ar schema
             for k, v in row.items():
@@ -634,17 +617,6 @@ class SampleImport(BaseContent):
 
         existing_sampleimports = pc(portal_type='SampleImport', review_state=['valid', 'imported'])
 
-        # Verify Client Reference
-        for sampleimport in existing_sampleimports:
-            if sampleimport.UID == self.UID() \
-                    or not sampleimport.getClientReference():
-                continue
-            sampleimport = sampleimport.getObject()
-            if sampleimport.getClientReference() == self.getClientReference():
-                self.error('%s: already used by existing SampleImport.' %
-                           'ClientReference')
-                break
-
 
     def validate_samples(self):
         """Scan through the SampleData values and make sure
@@ -779,11 +751,6 @@ class SampleImport(BaseContent):
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SamplePoint')
-
-    def Vocabulary_SampleMatrix(self):
-        vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "senaite_catalog_setup"
-        return vocabulary(allow_blank=True, portal_type="SampleMatrix")
 
     def Vocabulary_SampleType(self):
         vocabulary = CatalogVocabulary(self)
