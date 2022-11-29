@@ -81,7 +81,7 @@ NrSamples = StringField(
     'NrSamples',
     widget=StringWidget(
         label=_('Number of samples'),
-        visible=True
+        visible={'view': 'visible', 'edit': 'invisible'},
     ),
 )
 
