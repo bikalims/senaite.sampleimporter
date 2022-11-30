@@ -73,7 +73,7 @@ Filename = StringField(
     'Filename',
     widget=StringWidget(
         label=_('Original Filename'),
-        visible=True
+        visible={'view': 'visible', 'edit': 'invisible'}
     ),
 )
 
@@ -128,11 +128,20 @@ Batch = ReferenceField(
     allowed_types=('Batch',),
     relationship='SampleImportBatch',
     widget=bReferenceWidget(
-        label=_('Batch'),
+        label=_('Batch Title'),
         visible=True,
         catalog_name='senaite_catalog',
         base_query={'review_state': 'open'},
         showOn=True,
+    ),
+)
+
+ClientBatchID = StringField(
+    'ClientBatchID',
+    searchable=True,
+    widget=StringWidget(
+        label=_('Client Batch ID'),
+        visible=True
     ),
 )
 
@@ -184,12 +193,14 @@ schema = BikaSchema.copy() + Schema((
     ClientID,
     Contact,
     Batch,
+    ClientBatchID,
     SampleData,
     Errors,
 ))
 
 schema['title'].validators = ()
 # Update the validation layer after change the validator in runtime
+schema['title'].widget.label="ID"
 schema['title']._validationLayer()
 
 
@@ -534,6 +545,8 @@ class SampleImport(BaseContent):
         # action is required. We will just set the Batch field to
         # use the existing object.
         batch_title = batch_headers.get('title', False)
+        client_batch_id = batch_headers.get('ClientBatchID')
+        self.setClientBatchID(client_batch_id)
         if batch_title:
             existing_batch = [x for x in client.objectValues('Batch')
                               if x.title == batch_title]
@@ -552,6 +565,7 @@ class SampleImport(BaseContent):
             batch.edit(**batch_headers)
             batch.BatchDate = DateTime()
             self.Batch = batch
+            self.setBatch(batch) # Here we set the new batch
 
     def munge_field_value(self, schema, row_nr, fieldname, value):
         """Convert a spreadsheet value into a field value that fits in
@@ -600,9 +614,6 @@ class SampleImport(BaseContent):
         """Validate headers fields from schema
         """
 
-        pc = api.get_tool("portal_catalog")
-        pu = api.get_tool("plone_utils")
-
         client = self.aq_parent
 
         # Verify Client Name
@@ -614,9 +625,6 @@ class SampleImport(BaseContent):
         if self.getClientID() != client.getClientID():
             self.error("%s: value is invalid (%s)." % (
                 'Client ID', self.getClientID()))
-
-        existing_sampleimports = pc(portal_type='SampleImport', review_state=['valid', 'imported'])
-
 
     def validate_samples(self):
         """Scan through the SampleData values and make sure
