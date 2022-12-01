@@ -293,9 +293,14 @@ class SampleImport(BaseContent):
                 row['Batch'] = batch.UID()
 
             # Add AR fields from schema into this row's data
+            contact_object = self.getContact()
             contact_uid =\
-                self.getContact().UID() if self.getContact() else None
+                contact_object.UID() if contact_object else None
             row['Contact'] = contact_uid
+            if contact_object.getCCContact():
+                cc_contacts =\
+                    [cc.UID() for cc in contact_object.getCCContact()]
+            row['CCContact'] = cc_contacts
 
             # Creating analysis request from gathered data
             create_analysisrequest(
