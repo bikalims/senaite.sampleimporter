@@ -200,7 +200,7 @@ schema = BikaSchema.copy() + Schema((
 
 schema['title'].validators = ()
 # Update the validation layer after change the validator in runtime
-schema['title'].widget.label="ID"
+schema['title'].widget.label = "ID"
 schema['title']._validationLayer()
 
 
@@ -258,6 +258,7 @@ class SampleImport(BaseContent):
         workflow = api.get_tool("portal_workflow")
         trans_ids = [t["id"] for t in workflow.getTransitionsFor(self)]
         if "validate" in trans_ids:
+            self.setErrors([])
             workflow.doActionFor(self, "validate")
 
     def workflow_script_import(self):
