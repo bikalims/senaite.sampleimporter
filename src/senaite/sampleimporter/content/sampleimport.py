@@ -300,7 +300,7 @@ class SampleImport(BaseContent):
             if contact_object.getCCContact():
                 cc_contacts =\
                     [cc.UID() for cc in contact_object.getCCContact()]
-            row['CCContact'] = cc_contacts
+                row['CCContact'] = cc_contacts
 
             # Creating analysis request from gathered data
             create_analysisrequest(
