@@ -395,12 +395,22 @@ class SampleImport(BaseContent):
             if not any(row):
                 continue
             if next_rows_are_sample_rows:
-                vals = [x.strip() for x in row]
+                vals = []
+                for indx,x in enumerate(row):
+                    if indx!=3:
+                        if indx == 2:
+                            vals.append(x.strip()+" "+row[3].strip()) #Here we combine DateSampled and TimeSampled
+                        else:
+                            vals.append(x.strip())    
                 if not any(vals):
                     continue
                 res['samples'].append(zip(res['headers'], vals))
             elif row[0].strip().lower() == 'samples':
-                res['headers'] = [x.strip() for x in row]
+                headers = []
+                for x in row:
+                    if x!= "TimeSampled":
+                        headers.append(x.strip())
+                res['headers'] = headers
                 next_rows_are_sample_rows = True 
         return res
 
@@ -606,7 +616,7 @@ class SampleImport(BaseContent):
                 return [b.UID for b in brains] if brains else []
             else:
                 return brains[0].UID if brains else None
-        if field.type == 'datetime':
+        if field.type == 'datetime' or field.type == 'datetime_ng':
             try:
                 value = DateTime(value)
                 return ulocalized_time(
