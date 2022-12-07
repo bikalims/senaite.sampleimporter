@@ -51,7 +51,7 @@ from Products.CMFPlone.utils import _createObjectByType
 from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
-from Products.DataGridField import DateColumn
+from Products.DataGridField import DatetimeLocalColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
 from senaite.sampleimporter.interfaces import ISampleImport
@@ -164,7 +164,7 @@ SampleData = DataGridField(
         label=_('Samples'),
         columns={
             'ClientSampleID': Column('Sample ID'),
-            'DateSampled': DateColumn('Date Sampled'),
+            'DateSampled': DatetimeLocalColumn('Date Sampled'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleType': SelectColumn(
