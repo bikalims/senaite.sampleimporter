@@ -156,7 +156,7 @@ SampleData = DataGridField(
              'DateSampled',
              'SamplePoint',
              'SampleType',  # not a schema field!
-             'ContainerType',  # not a schema field!
+             'SampleContainer',  # not a schema field!
              'Analyses',  # not a schema field!
              'Profiles'  # not a schema field!
              ),
@@ -169,8 +169,8 @@ SampleData = DataGridField(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
-            'ContainerType': SelectColumn(
-                'Container', vocabulary='Vocabulary_ContainerType'),
+            'SampleContainer': SelectColumn(
+                'Sample Container', vocabulary='Vocabulary_SampleContainer'),
             'Analyses': LinesColumn('Analyses'),
             'Profiles': LinesColumn('Profiles'),
         }
@@ -301,8 +301,8 @@ class SampleImport(BaseContent):
                 cc_contacts =\
                     [cc.UID() for cc in contact_object.getCCContact()]
                 row['CCContact'] = cc_contacts
-
             # Creating analysis request from gathered data
+            row['Container'] = row.pop('SampleContainer') #SampleContainers are titled containers in analysis requests.
             create_analysisrequest(
                 client,
                 self.REQUEST,
@@ -473,14 +473,15 @@ class SampleImport(BaseContent):
             del (row['Samples'])
 
             # ContainerType - not part of sample or AR schema
-            if 'ContainerType' in row:
-                title = row['ContainerType']
+            
+            if 'SampleContainer' in row:
+                title = row['SampleContainer']
                 if title:
-                    obj = self.lookup(('ContainerType',),
-                                      Title=row['ContainerType'])
+                    obj = self.lookup(('SampleContainer',),
+                                      Title=row['SampleContainer'])
                     if obj:
-                        gridrow['ContainerType'] = obj[0].UID
-                del (row['ContainerType'])
+                        gridrow['SampleContainer'] = obj[0].UID
+                del (row['SampleContainer'])
 
             # match against ar schema
             for k, v in row.items():
@@ -726,7 +727,10 @@ class SampleImport(BaseContent):
         if type(allowed_types) not in (list, tuple):
             allowed_types = [allowed_types]
         for portal_type in allowed_types:
-            catalog = at.catalog_map.get(portal_type, [None])[0]
+            if portal_type == 'SampleContainer':
+                catalog = at.catalog_map.get('Container', [None])[0]
+            else:
+                catalog = at.catalog_map.get(portal_type, [None])[0]
             catalog = getToolByName(self, catalog)
             kwargs['portal_type'] = portal_type
             brains = catalog(**kwargs)
@@ -784,10 +788,13 @@ class SampleImport(BaseContent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SampleType')
 
-    def Vocabulary_ContainerType(self):
+    def Vocabulary_SampleContainer(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = "senaite_catalog_setup"
-        return vocabulary(allow_blank=True, portal_type="ContainerType")
+        folders = [self.bika_setup.sample_containers]
+        if IClient.providedBy(self.aq_parent):
+            folders.append(self.aq_parent)
+        return vocabulary(allow_blank=True, portal_type="SampleContainer")
 
     def error(self, msg):
         errors = list(self.getErrors())
