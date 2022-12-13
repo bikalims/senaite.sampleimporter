@@ -30,7 +30,7 @@ from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
 from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IClient
-from bika.lims.utils import tmpID
+from bika.lims.utils import getUsers, tmpID
 from bika.lims.utils.analysisrequest import create_analysisrequest
 from bika.lims.vocabularies import CatalogVocabulary
 from plone.app.blob.field import FileField as BlobFileField
@@ -154,6 +154,7 @@ SampleData = DataGridField(
     allow_oddeven=True,
     columns=('ClientSampleID',
              'DateSampled',
+             'Sampler',
              'SamplePoint',
              'SampleType',  # not a schema field!
              'SampleContainer',  # not a schema field!
@@ -165,6 +166,8 @@ SampleData = DataGridField(
         columns={
             'ClientSampleID': Column('Sample ID'),
             'DateSampled': DatetimeLocalColumn('Date Sampled'),
+            'Sampler': SelectColumn(
+                'Sampler', vocabulary='Vocabulary_Sampler'),
             'SamplePoint': SelectColumn(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleType': SelectColumn(
@@ -199,8 +202,8 @@ schema = BikaSchema.copy() + Schema((
 ))
 
 schema['title'].validators = ()
-# Update the validation layer after change the validator in runtime
 schema['title'].widget.label = "ID"
+# Update the validation layer after change the validator in runtime
 schema['title']._validationLayer()
 
 
@@ -482,6 +485,15 @@ class SampleImport(BaseContent):
                     if obj:
                         gridrow['SampleContainer'] = obj[0].UID
                 del (row['SampleContainer'])
+
+            if 'Sampler' in row:
+                title = row['Sampler']
+                if title:
+                    Users = getUsers(self, ['Sampler', ])
+                    for name in Users.items():
+                        if title in name[1]:
+                            gridrow['Sampler'] = name[0]
+                            del (row['Sampler'])
 
             # match against ar schema
             for k, v in row.items():
@@ -795,6 +807,9 @@ class SampleImport(BaseContent):
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type="SampleContainer")
+
+    def Vocabulary_Sampler(self):
+        return getUsers(self, ['Sampler', ])
 
     def error(self, msg):
         errors = list(self.getErrors())
