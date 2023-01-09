@@ -62,7 +62,7 @@ class SampleImportsView(BikaListingView):
             }
 
         self.show_select_row = False
-        self.show_select_column = False
+        self.show_select_column = True
         self.pagesize = 50
         self.form_id = "sampleimports"
 
@@ -89,33 +89,19 @@ class SampleImportsView(BikaListingView):
                 "id": "default",
                 "title": _("Pending"),
                 "contentFilter": {"review_state": ["invalid", "valid"]},
-                "columns": [
-                    "Title",
-                    "Creator",
-                    "Filename",
-                    "Client",
-                    "Contact",
-                    "DateCreated",
-                    "DateValidated",
-                    "DateImported",
-                    "state_title",
-                ],
+                "columns": self.columns.keys(),
             },
             {
                 "id": "imported",
                 "title": _("Imported"),
                 "contentFilter": {"review_state": "imported"},
-                "columns": [
-                    "Title",
-                    "Creator",
-                    "Filename",
-                    "Client",
-                    "Contact",
-                    "DateCreated",
-                    "DateValidated",
-                    "DateImported",
-                    "state_title",
-                ],
+                "columns": self.columns.keys(),
+            },
+            {
+                "id": "cancelled",
+                "title": _("Cancelled"),
+                "contentFilter": {"is_active": False},
+                "columns": self.columns.keys(),
             },
         ]
 
@@ -174,29 +160,19 @@ class ClientSampleImportsView(SampleImportsView):
                 "id": "default",
                 "title": _("Pending"),
                 "contentFilter": {"review_state": ["invalid", "valid"]},
-                "columns": [
-                    "Title",
-                    "Creator",
-                    "Filename",
-                    "DateCreated",
-                    "DateValidated",
-                    "DateImported",
-                    "state_title",
-                ],
+                "columns": self.columns.keys(),
             },
             {
                 "id": "imported",
                 "title": _("Imported"),
                 "contentFilter": {"review_state": "imported"},
-                "columns": [
-                    "Title",
-                    "Creator",
-                    "Filename",
-                    "DateCreated",
-                    "DateValidated",
-                    "DateImported",
-                    "state_title",
-                ],
+                "columns": self.columns.keys(),
+            },
+            {
+                "id": "cancelled",
+                "title": _("Cancelled"),
+                "contentFilter": {"is_active": False},
+                "columns": self.columns.keys(),
             },
         ]
 

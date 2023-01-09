@@ -23,6 +23,7 @@
   </state>
 
   <state state_id="invalid" title="Invalid"  i18n:attributes="title">
+    <exit-transition transition_id="cancel" />
     <exit-transition transition_id="validate" />
     <permission-map name="Modify portal content" acquired="False">
       <permission-role>LabClerk</permission-role>
@@ -37,7 +38,22 @@
   </state>
 
   <state state_id="valid" title="Valid"  i18n:attributes="title">
+    <exit-transition transition_id="cancel" />
     <exit-transition transition_id="import" />
+    <permission-map name="Modify portal content" acquired="False">
+      <permission-role>LabClerk</permission-role>
+      <permission-role>LabManager</permission-role>
+      <permission-role>Manager</permission-role>
+    </permission-map>
+    <permission-map name="senaite.core: Manage Analysis Requests" acquired="False">
+      <permission-role>LabClerk</permission-role>
+      <permission-role>LabManager</permission-role>
+      <permission-role>Manager</permission-role>
+    </permission-map>
+  </state>
+
+  <state state_id="cancelled" title="Cancelled"  i18n:attributes="title">
+    <exit-transition transition_id="" />
     <permission-map name="Modify portal content" acquired="False">
       <permission-role>LabClerk</permission-role>
       <permission-role>LabManager</permission-role>
@@ -54,6 +70,15 @@
     <action url="" category="workflow" icon="">Import</action>
     <guard>
       <guard-permission>senaite.core: Manage Analysis Requests</guard-permission>
+    </guard>
+  </transition>
+
+  <transition transition_id="cancel" title="Cancel" new_state="cancelled" trigger="USER" before_script="" after_script="" i18n:attributes="title">
+    <action url="" category="workflow" icon="">Cancel</action>
+    <guard>
+      <guard-permission>senaite.core: Transition: Cancel</guard-permission>
+      <!-- <guard-permission>senaite.core: Manage Analysis Requests</guard-permission> -->
+      <guard-expression>python:here.guard_handler("cancel")</guard-expression>
     </guard>
   </transition>
 
