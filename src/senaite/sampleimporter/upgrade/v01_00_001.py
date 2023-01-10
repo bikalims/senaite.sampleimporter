@@ -23,7 +23,7 @@ from senaite.sampleimporter import logger
 
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
-from senaite.core.config import PROJECTNAME as product
+from senaite.sampleimporter import PROJECTNAME as product
 
 version = "1.0.1"
 profile = "profile-{0}:default".format(product)
