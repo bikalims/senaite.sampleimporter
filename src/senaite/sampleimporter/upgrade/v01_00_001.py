@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from senaite.core.upgrade import upgradestep
+
 from senaite.sampleimporter import PRODUCT_NAME
 from senaite.sampleimporter import logger
-from senaite.core.config import PROJECTNAME as product
+from senaite.sampleimporter import PROJECTNAME as product
 
 version = "1.0.1"
 profile = "profile-{0}:default".format(product)
+
 
 @upgradestep(PRODUCT_NAME, version)
 def upgrade(tool):

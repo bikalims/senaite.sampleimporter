@@ -1,9 +1,9 @@
-Header,Client name,Client ID,Contact,,,,,,
-Header Data,Happy Hills,HH,Rita Mohale,,,,,,
-Batch Header,title,description,ClientBatchID,,,,,,
-Batch Data,Test Batch,The batch that we will use for testing,B-001,,,,,,
-Samples,ClientSampleID,DateSampled,SamplePoint,SampleType,ContainerType,Sulphate,Sulphide,Sulphite,Turbidity
-Sample 1,HHS14032,3/9/2014,Castle,Potable,Glass Bottle,1,,,
-Sample 2,HHS14033,3/9/2014,Cinema,Sludge,Plastic Ziplock,,1,,
-Sample 3,HHS14034,3/9/2014,Clinic,Wastewater,Plastic Bottle,,,1,
-Sample 4,HHS14035,3/9/2014,Factory,Other,Plastic Ziplock,,,,1
+Header,Client name,Client ID,Contact,,,,,,,,
+Header Data,Happy Hills,HH,Rita Mohale,,,,,,,,
+Batch Header,title,description,ClientBatchID,,,,,,,,
+Batch Data,Time Import Test Sampling off,,,,,,,,,,
+Samples,ClientSampleID,DateSampled,TimeSampled,Sampler,SamplePoint,SampleType,Sample Container,Boiler Water,Sulphide,Sulphite,Turbidity
+Sample 1,BIMP14020,3/9/2014,9:00,Sam Sampler,Castle,Potable,Micro Na2S2O3 bottle - 2 L,1,,,
+Sample 2,BIMP14021,3/9/2014,9:25,Sam Sampler,Cinema,Sludge,Micro Na2S2O3 bottle - 2 L,,1,,
+Sample 3,BIMP14022,3/9/2014,10:15,Sam Sampler,Clinic,Wastewater,Micro Na2S2O3 bottle - 2 L,,,1,
+Sample 4,BIMP14023,3/9/2014,14:20,Sam Sampler,Factory,Other,Micro Na2S2O3 bottle - 2 L,,,,1

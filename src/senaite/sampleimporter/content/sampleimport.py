@@ -164,7 +164,7 @@ SampleData = DataGridField(
     widget=DataGridWidget(
         label=_('Samples'),
         columns={
-            'ClientSampleID': Column('Sample ID'),
+            'ClientSampleID': Column('Client Sample ID'),
             'DateSampled': DatetimeLocalColumn('Date Sampled'),
             'Sampler': SelectColumn(
                 'Sampler', vocabulary='Vocabulary_Sampler'),
