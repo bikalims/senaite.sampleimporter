@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of SENAITE.QUEUE.
+# This file is part of SENAITE.SAMPLEIMPORTER.
 #
-# SENAITE.QUEUE is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the Free
+# SENAITE.CORE.LISTING is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by the Free
 # Software Foundation, version 2.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
@@ -15,5 +15,5 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-# Copyright 2019-2021 by it's authors.
+# Copyright 2019 by it's authors.
 # Some rights reserved, see README and LICENSE.

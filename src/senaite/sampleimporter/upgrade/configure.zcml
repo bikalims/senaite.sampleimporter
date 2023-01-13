@@ -8,7 +8,7 @@
      description="Update Workflow"
      source="1.0.0"
      destination="1.0.1"
-     handler="senaite.sampleimporter.v01_00_001.upgrade"
+     handler="senaite.sampleimporter.upgrade.v01_00_001.upgrade"
      profile="senaite.sampleimporter:default"/>
 
 </configure>
