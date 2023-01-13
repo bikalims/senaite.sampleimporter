@@ -2,6 +2,8 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="senaite.sampleimporter">
+  
+    <include package=".workflow"/>
 
     <browser:page
       for="bika.lims.interfaces.IClient"
