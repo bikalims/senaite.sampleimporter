@@ -47,6 +47,7 @@ from Products.Archetypes.public import StringWidget
 from Products.Archetypes.references import HoldingReference
 from Products.Archetypes.utils import addStatusMessage
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.browser.search import quote_chars
 from Products.CMFPlone.utils import _createObjectByType
 from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
@@ -745,6 +746,10 @@ class SampleImport(BaseContent):
                 catalog = at.catalog_map.get(portal_type, [None])[0]
             catalog = getToolByName(self, catalog)
             kwargs['portal_type'] = portal_type
+            if kwargs.get('Title'):
+                kwargs['Title'] =  quote_chars(kwargs['Title'])
+            if kwargs.get('UID'):
+                kwargs['UID'] =  quote_chars(kwargs['UID'])
             brains = catalog(**kwargs)
             if brains:
                 return brains
