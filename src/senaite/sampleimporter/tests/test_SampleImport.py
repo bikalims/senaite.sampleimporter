@@ -63,6 +63,12 @@ class TestSampleImports(SimpleTestCase):
             self.portal.bika_setup.bika_samplepoints, 'SamplePoint',
             title='Toilet')
         self.addthing(
+            self.portal.bika_setup.bika_samplepoints, 'SamplePoint',
+            title='Bracketville (Centre)')
+        self.addthing(
+            self.portal.bika_setup.bika_samplepoints, 'SamplePoint',
+            title='(Land) of (Brackets) station')
+        self.addthing(
             self.portal.bika_setup.bika_containertypes, 'ContainerType',
             title='Cup')
         a = self.addthing(
@@ -95,17 +101,17 @@ class TestSampleImports(SimpleTestCase):
         sampleimport = self.addthing(client, 'SampleImport')
         sampleimport.unmarkCreationFlag()
         sampleimport.setFilename("test1.csv")
+        # Fix double comma at TimeSampled should work without it.
         sampleimport.setOriginalFile("""
-Header,File name,Client name,Client ID,Contact,CC Names - Report,CC Emails - Report,CC Names - Invoice,CC Emails - Invoice,No of Samples,Client Order Number,Client Reference,,
-Header Data,test1.csv,Happy Hills,HH,Rita Mohale,,,,,4,HHPO-001,,,
-Batch Header,id,title,description,ClientBatchID,ClientBatchComment,BatchLabels,ReturnSampleToClient,,,
-Batch Data,B15-0123,New Batch,Optional descr,CC 201506,Just a batch,,TRUE,,,
-Samples,ClientSampleID,SamplingDate,DateSampled,SamplePoint,SampleMatrix,SampleType,ContainerType,Total number of Analyses or Profiles,Price excl Tax,ECO,SAL,COL,TAS,MicroBio,Properties
-"Total Analyses or Profiles",,,,,,,,,,,,,9,,,
-"Sample 1",HHS14001,,3/9/2014,Toilet,Liquid,Water,Cup,1,0,0,0,0,0,0,1
-"Sample 2",HHS14002,,3/9/2014,Toilet,Liquid,Water,Cup,2,0,0,0,0,0,1,1
-"Sample 3",HHS14002,,3/9/2014,Toilet,Liquid,Water,Cup,4,0,1,1,1,1,0,0
-"Sample 4",HHS14003,,3/9/2014,Toilet,Liquid,Water,Cup,2,0,1,0,0,0,1,0
+Header    ,Client name    ,Client ID       ,Contact
+Header Data    ,Happy Hills    ,HH         ,Rita Mohale
+Batch Header    ,title    ,description    ,ClientBatchID
+Batch Data    ,New Batch  ,Optional descr   ,CC 201506
+Samples    ,ClientSampleID ,DateSampled    ,TimeSampled ,Sampler  ,SamplePoint    ,SampleType ,SampleContainer ,ECO  ,SAL  ,COL  ,TAS   ,MicroBio ,Properties
+"Sample 1"    ,HHS14001    ,3/9/2014       ,,            ,        ,  Toilet ,  Water    ,Cup             ,0    ,0    ,0    ,0     ,0        ,1
+"Sample 2"    ,HHS14002    ,3/9/2014       ,,           ,         ,  Toilet ,  Water    ,Cup             ,0    ,0    ,0    ,0     ,1        ,1
+"Sample 3"    ,HHS14002    ,3/9/2014       ,,            ,        ,  Toilet ,  Water    ,Cup             ,1    ,1    ,1    ,1     ,0        ,0
+"Sample 4"    ,HHS14003    ,3/9/2014       ,,           ,         ,  Toilet ,  Water    ,Cup             ,1    ,0    ,0    ,0     ,1        ,0
         """)
 
         # check that values are saved without errors
@@ -235,6 +241,42 @@ Samples,    ClientSampleID,    SamplingDate,DateSampled,SamplePoint,SampleMatrix
         browser.getControl(name="form.button.save").click()
         if 'test_reference' not in browser.contents:
             self.fail('Failed to modify SampleImport object (Client Reference)')
+
+    def test_LIMS_206_brackets_throwoff_lookup(self):
+        pc = getToolByName(self.portal, 'portal_catalog')
+        workflow = getToolByName(self.portal, 'portal_workflow')
+        client = self.portal.clients.objectValues()[0]
+        sampleimport = self.addthing(client, 'SampleImport')
+        sampleimport.unmarkCreationFlag()
+        sampleimport.setFilename("test1.csv")
+        sampleimport.setOriginalFile("""
+Header    ,Client name    ,Client ID       ,Contact
+Header Data    ,Happy Hills    ,HH         ,Rita Mohale
+Batch Header    ,title    ,description    ,ClientBatchID
+Batch Data    ,New Batch  ,Optional descr   ,CC 201506
+Samples    ,ClientSampleID ,DateSampled    ,TimeSampled ,Sampler  ,SamplePoint    ,SampleType ,SampleContainer ,ECO  ,SAL  ,COL  ,TAS   ,MicroBio ,Properties
+"Sample 1"    ,HHS14001    ,3/9/2014       ,,            ,        ,   (Land) of (Brackets) station                    ,  Water    ,Cup             ,0    ,0    ,0    ,0     ,0        ,1
+"Sample 2"    ,HHS14002    ,3/9/2014       ,,           ,         ,   Bracketville (Centre)     ,  Water    ,Cup             ,0    ,0    ,0    ,0     ,1        ,1
+"Sample 3"    ,HHS14002    ,3/9/2014       ,,            ,        ,   (Land) of (Brackets) station                    ,  Water    ,Cup             ,1    ,1    ,1    ,1     ,0        ,0
+"Sample 4"    ,HHS14003    ,3/9/2014       ,,           ,         ,   Bracketville (Centre)     ,  Water    ,Cup             ,1    ,0    ,0    ,0     ,1        ,0
+        """)
+
+        # check that values are saved without errors
+        sampleimport.setErrors([])
+        sampleimport.save_header_data()
+        sampleimport.save_sample_data()
+        sampleimport.create_or_reference_batch()
+        errors = sampleimport.getErrors()
+        if errors:
+            self.fail("Unexpected errors while saving data: " + str(errors))
+        # the workflow scripts use response.write(); silence them
+        sampleimport.REQUEST.response.write = lambda x: x
+        barc = getToolByName(self.portal, CATALOG_ANALYSIS_REQUEST_LISTING)
+        samples = barc(portal_type='AnalysisRequest')
+
+        for samp in samples:
+            if samp.getObject().getSamplePoint().title not in ["(Land) of (Brackets) station",'Bracketville (Centre)']:
+                self.fail('Sample Point with Brackets not imported into Sample Point field')
 
 
 def test_suite():
