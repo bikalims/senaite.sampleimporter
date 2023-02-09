@@ -158,6 +158,9 @@ SampleData = DataGridField(
              'Sampler',
              'SamplePoint',
              'SampleType',  # not a schema field!
+             'AnalysisSpecification',
+             'PublicationSpecification',
+             'SampleCondition',
              'SampleContainer',  # not a schema field!
              'Analyses',  # not a schema field!
              'Profiles'  # not a schema field!
@@ -173,6 +176,12 @@ SampleData = DataGridField(
                 'Sample Point', vocabulary='Vocabulary_SamplePoint'),
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
+            'AnalysisSpecification': SelectColumn(
+                'Analysis Specification', vocabulary='Vocabulary_AnalysisSpecification'),
+            'PublicationSpecification': SelectColumn(
+                'Publication Specification', vocabulary='Vocabulary_AnalysisSpecification'),
+            'SampleCondition': SelectColumn(
+                'Sample Condition', vocabulary='Vocabulary_SampleCondition'),
             'SampleContainer': SelectColumn(
                 'Sample Container', vocabulary='Vocabulary_SampleContainer'),
             'Analyses': LinesColumn('Analyses'),
@@ -496,6 +505,15 @@ class SampleImport(BaseContent):
                             gridrow['Sampler'] = name[0]
                             del (row['Sampler'])
 
+            if 'AnalysisSpecification' in row:
+                title = row['AnalysisSpecification']
+                if title:
+                    obj = self.lookup(('AnalysisSpec',),
+                                      Title=row['AnalysisSpecification'])
+                    if obj:
+                        gridrow['AnalysisSpecification'] = obj[0].UID
+                del (row['AnalysisSpecification'])
+
             # match against ar schema
             for k, v in row.items():
                 if k in ['Analyses', 'Profiles']:
@@ -742,6 +760,8 @@ class SampleImport(BaseContent):
         for portal_type in allowed_types:
             if portal_type == 'SampleContainer':
                 catalog = at.catalog_map.get('Container', [None])[0]
+            elif portal_type == 'AnalysisSpec':
+                catalog = at.catalog_map.get('AnalysisSpec', [None])[0]
             else:
                 catalog = at.catalog_map.get(portal_type, [None])[0]
             catalog = getToolByName(self, catalog)
@@ -804,6 +824,22 @@ class SampleImport(BaseContent):
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SampleType')
+
+    def Vocabulary_AnalysisSpecification(self):
+        vocabulary = CatalogVocabulary(self)
+        vocabulary.catalog = "senaite_catalog_setup"
+        folders = [self.bika_setup.bika_analysisspecs]#change
+        if IClient.providedBy(self.aq_parent):
+            folders.append(self.aq_parent)
+        return vocabulary(allow_blank=True, portal_type='AnalysisSpec')
+
+    def Vocabulary_SampleCondition(self):
+        vocabulary = CatalogVocabulary(self)
+        vocabulary.catalog = "senaite_catalog_setup"
+        folders = [self.bika_setup.bika_sampleconditions]#change
+        if IClient.providedBy(self.aq_parent):
+            folders.append(self.aq_parent)
+        return vocabulary(allow_blank=True, portal_type='SampleCondition')
 
     def Vocabulary_SampleContainer(self):
         vocabulary = CatalogVocabulary(self)
