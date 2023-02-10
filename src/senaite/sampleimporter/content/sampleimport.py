@@ -316,6 +316,8 @@ class SampleImport(BaseContent):
                 row['CCContact'] = cc_contacts
             # Creating analysis request from gathered data
             row['Container'] = row.pop('SampleContainer') #SampleContainers are titled containers in analysis requests.
+            row['Specification'] = row.pop('AnalysisSpecification') #Naming convention for Analysis specifications in the schema
+            row['Specification_uid'] = row.get('Specification')
             create_analysisrequest(
                 client,
                 self.REQUEST,
