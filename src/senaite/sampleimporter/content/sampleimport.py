@@ -774,6 +774,10 @@ class SampleImport(BaseContent):
                 kwargs['UID'] =  quote_chars(kwargs['UID'])
             brains = catalog(**kwargs)
             if brains:
+                if portal_type == 'SamplePoint':
+                    names = [k.Title for k in brains]
+                    index_of_name = names.index(kwargs.get('Title'))
+                    return [brains[index_of_name]]
                 return brains
 
     def get_row_services(self, row):
