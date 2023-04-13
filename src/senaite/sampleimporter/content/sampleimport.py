@@ -493,7 +493,7 @@ class SampleImport(BaseContent):
                 title = row['SampleContainer']
                 if title:
                     obj = self.lookup(('SampleContainer',),
-                                      Title=row['SampleContainer'])
+                                      title=row['SampleContainer'])
                     if obj:
                         gridrow['SampleContainer'] = obj[0].UID
                 del (row['SampleContainer'])
@@ -511,7 +511,7 @@ class SampleImport(BaseContent):
                 title = row['AnalysisSpecification']
                 if title:
                     obj = self.lookup(('AnalysisSpec',),
-                                      Title=row['AnalysisSpecification'])
+                                      title=row['AnalysisSpecification'])
                     if obj:
                         gridrow['AnalysisSpecification'] = obj[0].UID
                 del (row['AnalysisSpecification'])
@@ -640,7 +640,7 @@ class SampleImport(BaseContent):
             if len(value) < 2:
                 raise ValueError('Row %s: value is too short (%s=%s)' % (
                     row_nr, fieldname, value))
-            brains = self.lookup(field.allowed_types, Title=value)
+            brains = self.lookup(field.allowed_types, title=value)
             if not brains:
                 brains = self.lookup(field.allowed_types, UID=value)
             if not brains:
@@ -760,16 +760,16 @@ class SampleImport(BaseContent):
         if type(allowed_types) not in (list, tuple):
             allowed_types = [allowed_types]
         for portal_type in allowed_types:
+            # TODO: SampleContainer is not found but Container is found,
+            # could be due to Dexterity vs Archetypes
             if portal_type == 'SampleContainer':
                 catalog = at.catalog_map.get('Container', [None])[0]
-            elif portal_type == 'AnalysisSpec':
-                catalog = at.catalog_map.get('AnalysisSpec', [None])[0]
             else:
                 catalog = at.catalog_map.get(portal_type, [None])[0]
             catalog = getToolByName(self, catalog)
             kwargs['portal_type'] = portal_type
-            if kwargs.get('Title'):
-                kwargs['Title'] =  quote_chars(kwargs['Title'])
+            if kwargs.get('title'):
+                kwargs['title'] =  quote_chars(kwargs['title'])
             if kwargs.get('UID'):
                 kwargs['UID'] =  quote_chars(kwargs['UID'])
             brains = catalog(**kwargs)
