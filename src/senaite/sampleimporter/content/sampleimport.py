@@ -760,6 +760,8 @@ class SampleImport(BaseContent):
         if type(allowed_types) not in (list, tuple):
             allowed_types = [allowed_types]
         for portal_type in allowed_types:
+            # TODO: SampleContainer is not found but Container is found,
+            # could be due to Dexterity vs Archetypes
             if portal_type == 'SampleContainer':
                 catalog = at.catalog_map.get('Container', [None])[0]
             else:
