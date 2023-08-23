@@ -26,7 +26,6 @@ from AccessControl import ClassSecurityInfo
 from copy import deepcopy
 from DateTime.DateTime import DateTime
 from bika.lims.browser import ulocalized_time
-from bika.lims.browser.widgets import ReferenceWidget as bReferenceWidget
 from bika.lims.content.bikaschema import BikaSchema
 from bika.lims.idserver import renameAfterCreation
 from bika.lims.interfaces import IClient
@@ -55,6 +54,7 @@ from Products.DataGridField import DataGridWidget
 from Products.DataGridField import DatetimeLocalColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
+from senaite.core.browser.widgets import ReferenceWidget as bReferenceWidget
 from senaite.sampleimporter.interfaces import ISampleImport
 from senaite.sampleimporter import logger
 from senaite.sampleimporter import PRODUCT_NAME
