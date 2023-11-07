@@ -378,7 +378,7 @@ class SampleImport(BaseContent):
         contacts = [x for x in client.objectValues('Contact')]
         contact = [c for c in contacts if c.Title() == v]
         if contact:
-            self.schema['Contact'].set(self, contact)
+            self.schema['Contact'].set(self, contact[0])
         else:
             self.error("Specified contact '%s' does not exist; using '%s'" %
                        (v, contacts[0].Title()))
