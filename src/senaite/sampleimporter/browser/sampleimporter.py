@@ -124,7 +124,7 @@ class SampleImportsView(BikaListingView):
                 parent.absolute_url(),
                 parent.Title(),
             )
-            contact = obj.getContact():
+            contact = obj.getContact()
             if contact:
                 items[x]["Contact"] = contact
                 items[x]["replace"]["Contact"] = "<a href='%s'>%s</a>" % (
