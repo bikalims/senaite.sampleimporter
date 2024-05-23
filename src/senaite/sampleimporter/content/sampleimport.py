@@ -813,8 +813,8 @@ class SampleImport(BaseContent):
             objects = [x for x in profiles
                        if val in (x.getProfileKey(), x.UID(), x.Title())]
             if objects:
-                for service in objects[0].getService():
-                    services.add(service.UID())
+                for service in objects[0].services:
+                    services.add(service["uid"])
             else:
                 self.error("Invalid profile specified: %s" % val)
         return list(services)
