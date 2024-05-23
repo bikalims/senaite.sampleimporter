@@ -124,11 +124,13 @@ class SampleImportsView(BikaListingView):
                 parent.absolute_url(),
                 parent.Title(),
             )
-            items[x]["Contact"] = obj.getContact()
-            items[x]["replace"]["Contact"] = "<a href='%s'>%s</a>" % (
-                obj.getContact().absolute_url(),
-                obj.getContact().Title(),
-            )
+            contact = obj.getContact()
+            if contact:
+                items[x]["Contact"] = contact
+                items[x]["replace"]["Contact"] = "<a href='%s'>%s</a>" % (
+                    contact.absolute_url(),
+                    contact.Title(),
+                )
             items[x]["DateCreated"] = ulocalized_time(
                 obj.created(), long_format=True, time_only=False, context=obj
             )
