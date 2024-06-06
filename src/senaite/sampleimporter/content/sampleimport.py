@@ -47,7 +47,6 @@ from Products.Archetypes.references import HoldingReference
 from Products.Archetypes.utils import addStatusMessage
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.browser.search import quote_chars
-from Products.CMFPlone.utils import _createObjectByType
 from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
@@ -177,9 +176,13 @@ SampleData = DataGridField(
             'SampleType': SelectColumn(
                 'Sample Type', vocabulary='Vocabulary_SampleType'),
             'AnalysisSpecification': SelectColumn(
-                'Analysis Specification', vocabulary='Vocabulary_AnalysisSpecification'),
+                'Analysis Specification',
+                vocabulary='Vocabulary_AnalysisSpecification'
+                ),
             'PublicationSpecification': SelectColumn(
-                'Publication Specification', vocabulary='Vocabulary_AnalysisSpecification'),
+                'Publication Specification',
+                vocabulary='Vocabulary_AnalysisSpecification'
+                ),
             'SampleCondition': SelectColumn(
                 'Sample Condition', vocabulary='Vocabulary_SampleCondition'),
             'SampleContainer': SelectColumn(
@@ -244,7 +247,8 @@ class SampleImport(BaseContent):
             - Errors are stored on object and displayed to user.
 
         """
-        # Re-set the errors on this SampleImport each time validation is attempted.
+        # Re-set the errors on this SampleImport each time validation
+        # is attempted.
         # When errors are detected they are immediately appended to this field.
         self.setErrors([])
 
@@ -315,8 +319,11 @@ class SampleImport(BaseContent):
                     [cc.UID() for cc in contact_object.getCCContact()]
                 row['CCContact'] = cc_contacts
             # Creating analysis request from gathered data
-            row['Container'] = row.pop('SampleContainer') #SampleContainers are titled containers in analysis requests.
-            row['Specification'] = row.pop('AnalysisSpecification') #Naming convention for Analysis specifications in the schema
+            # SampleContainers are titled containers in analysis requests.
+            row['Container'] = row.pop('SampleContainer')
+
+            # Naming convention for Analysis specifications in the schema
+            row['Specification'] = row.pop('AnalysisSpecification')
             row['Specification_uid'] = row.get('Specification')
             create_analysisrequest(
                 client,
@@ -411,22 +418,23 @@ class SampleImport(BaseContent):
                 continue
             if next_rows_are_sample_rows:
                 vals = []
-                for indx,x in enumerate(row):
-                    if indx!=3:
+                for indx, x in enumerate(row):
+                    if indx != 3:
                         if indx == 2:
-                            vals.append(x.strip()+" "+row[3].strip()) #Here we combine DateSampled and TimeSampled
+                            # Here we combine DateSampled and TimeSampled
+                            vals.append(x.strip()+" "+row[3].strip())
                         else:
-                            vals.append(x.strip())    
+                            vals.append(x.strip())
                 if not any(vals):
                     continue
                 res['samples'].append(zip(res['headers'], vals))
             elif row[0].strip().lower() == 'samples':
                 headers = []
                 for x in row:
-                    if x!= "TimeSampled":
+                    if x != "TimeSampled":
                         headers.append(x.strip())
                 res['headers'] = headers
-                next_rows_are_sample_rows = True 
+                next_rows_are_sample_rows = True
         return res
 
     def get_ar(self):
@@ -460,7 +468,7 @@ class SampleImport(BaseContent):
             self.error("No sample data found")
             return False
 
-        self.schema['NrSamples'].set(self,len(sample_data.get('samples', [])))
+        self.schema['NrSamples'].set(self, len(sample_data.get('samples', [])))
         # columns that we expect, but do not find, are listed here.
         # we report on them only once, after looping through sample rows.
         missing = set()
@@ -488,7 +496,7 @@ class SampleImport(BaseContent):
             del (row['Samples'])
 
             # ContainerType - not part of sample or AR schema
-            
+
             if 'SampleContainer' in row:
                 title = row['SampleContainer']
                 if title:
@@ -615,7 +623,7 @@ class SampleImport(BaseContent):
             batch.edit(**batch_headers)
             batch.BatchDate = DateTime()
             self.Batch = batch
-            self.setBatch(batch) # Here we set the new batch
+            self.setBatch(batch)  # Here we set the new batch
 
     def munge_field_value(self, schema, row_nr, fieldname, value):
         """Convert a spreadsheet value into a field value that fits in
@@ -655,7 +663,7 @@ class SampleImport(BaseContent):
                 value = DateTime(value)
                 return ulocalized_time(
                     value, long_format=True, time_only=False, context=self)
-            except Exception as e:
+            except Exception:
                 raise ValueError('Row %s: value is invalid (%s=%s)' % (
                     row_nr, fieldname, value))
         return str(value)
@@ -747,7 +755,7 @@ class SampleImport(BaseContent):
             try:
                 ulocalized_time(DateTime(value), long_format=True,
                                 time_only=False, context=self)
-            except Exception as e:
+            except Exception:
                 raise ValueError('Row %s: value is invalid (%s=%s)' % (
                     row_nr, fieldname, value))
         return value
@@ -769,9 +777,9 @@ class SampleImport(BaseContent):
             catalog = getToolByName(self, catalog)
             kwargs['portal_type'] = portal_type
             if kwargs.get('title'):
-                kwargs['title'] =  quote_chars(kwargs['title'])
+                kwargs['title'] = quote_chars(kwargs['title'])
             if kwargs.get('UID'):
-                kwargs['UID'] =  quote_chars(kwargs['UID'])
+                kwargs['UID'] = quote_chars(kwargs['UID'])
             brains = catalog(**kwargs)
             if brains:
                 return brains
@@ -805,8 +813,8 @@ class SampleImport(BaseContent):
             objects = [x for x in profiles
                        if val in (x.getProfileKey(), x.UID(), x.Title())]
             if objects:
-                for service in objects[0].getService():
-                    services.add(service.UID())
+                for service in objects[0].services:
+                    services.add(service["uid"])
             else:
                 self.error("Invalid profile specified: %s" % val)
         return list(services)
@@ -830,7 +838,7 @@ class SampleImport(BaseContent):
     def Vocabulary_AnalysisSpecification(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = "senaite_catalog_setup"
-        folders = [self.bika_setup.bika_analysisspecs]#change
+        folders = [self.bika_setup.bika_analysisspecs]  # change
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='AnalysisSpec')
@@ -838,7 +846,8 @@ class SampleImport(BaseContent):
     def Vocabulary_SampleCondition(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = "senaite_catalog_setup"
-        folders = [self.bika_setup.bika_sampleconditions]#change
+        sn_setup = api.get_senaite_setup()
+        folders = [sn_setup.sampleconditions]  # change
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SampleCondition')
