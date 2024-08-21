@@ -822,7 +822,8 @@ class SampleImport(BaseContent):
     def Vocabulary_SamplePoint(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = "senaite_catalog_setup"
-        folders = [self.bika_setup.bika_samplepoints]
+        sn_setup = api.get_senaite_setup()
+        folders = [sn_setup.samplepoints]  # change
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type='SamplePoint')
