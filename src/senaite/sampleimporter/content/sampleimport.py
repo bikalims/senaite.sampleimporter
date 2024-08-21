@@ -856,7 +856,8 @@ class SampleImport(BaseContent):
     def Vocabulary_SampleContainer(self):
         vocabulary = CatalogVocabulary(self)
         vocabulary.catalog = "senaite_catalog_setup"
-        folders = [self.bika_setup.sample_containers]
+        sn_setup = api.get_senaite_setup()
+        folders = [sn_setup.samplecontainers]
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
         return vocabulary(allow_blank=True, portal_type="SampleContainer")
