@@ -387,9 +387,12 @@ class SampleImport(BaseContent):
         if contact:
             self.schema['Contact'].set(self, contact[0])
         else:
-            self.error("Specified contact '%s' does not exist; using '%s'" %
-                       (v, contacts[0].Title()))
-            self.schema['Contact'].set(self, contacts[0])
+            if contacts:
+                self.error("Specified contact '%s' does not exist; using '%s'" %
+                            (v, contacts[0].Title()))
+                self.schema['Contact'].set(self, contacts[0])
+            else:
+                self.error("Specified contact '%s' does not exist; and there are no other contacts." % (v))
         del (headers['Contact'])
 
         if headers:
@@ -744,6 +747,7 @@ class SampleImport(BaseContent):
             if not value:
                 return value
             brains = self.lookup(field.allowed_types, UID=value)
+
             if not brains:
                 raise ValueError("Row %s: value is invalid (%s=%s)" % (
                     row_nr, fieldname, value))
