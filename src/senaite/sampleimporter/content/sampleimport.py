@@ -54,6 +54,7 @@ from Products.DataGridField import DatetimeLocalColumn
 from Products.DataGridField import LinesColumn
 from Products.DataGridField import SelectColumn
 from senaite.core.browser.widgets import ReferenceWidget as bReferenceWidget
+from senaite.core.catalog import CONTACT_CATALOG
 from senaite.sampleimporter.interfaces import ISampleImport
 from senaite.sampleimporter import logger
 from senaite.sampleimporter import PRODUCT_NAME
@@ -110,7 +111,7 @@ Contact = ReferenceField(
     default_method='getContactUIDForUser',
     referenceClass=HoldingReference,
     vocabulary_display_path_bound=sys.maxint,
-    widget=ReferenceWidget(
+    widget=bReferenceWidget(
         label=_('Primary Contact'),
         size=20,
         visible=True,
@@ -382,10 +383,15 @@ class SampleImport(BaseContent):
 
         # Primary Contact
         v = headers.get('Contact', None)
-        contacts = [x for x in client.objectValues('Contact')]
-        contact = [c for c in contacts if c.Title() == v]
-        if contact:
-            self.schema['Contact'].set(self, contact[0])
+        query = {"portal_type": "Contact",
+                 "Title":v,
+                 "path": {
+                     "query": "/".join(client.getPhysicalPath())}
+                 }
+        catalog = api.get_tool(CONTACT_CATALOG)
+        contacts = catalog(query)
+        if contacts:
+            self.schema['Contact'].set(self, contacts[0].UID)
         else:
             if contacts:
                 self.error("Specified contact '%s' does not exist; using '%s'" %
