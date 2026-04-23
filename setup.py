@@ -12,7 +12,7 @@ setup(
     name="senaite.sampleimporter",
     version=version,
     description="AR importing add-on for SENAITE",
-    long_description=open("README.rst").read(),
+    long_description=open("README.md").read(),
     # long_description_content_type="text/markdown",
     # Get more strings from
     # http://pypi.python.org/pypi?:action=list_classifiers
