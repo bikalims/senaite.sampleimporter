@@ -46,7 +46,6 @@ from Products.Archetypes.public import StringWidget
 from Products.Archetypes.references import HoldingReference
 from Products.Archetypes.utils import addStatusMessage
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.browser.search import quote_chars
 from Products.DataGridField import Column
 from Products.DataGridField import DataGridField
 from Products.DataGridField import DataGridWidget
@@ -426,23 +425,17 @@ class SampleImport(BaseContent):
             if not any(row):
                 continue
             if next_rows_are_sample_rows:
-                vals = []
-                for indx, x in enumerate(row):
-                    if indx != 3:
-                        if indx == 2:
-                            # Here we combine DateSampled and TimeSampled
-                            vals.append(x.strip()+" "+row[3].strip())
-                        else:
-                            vals.append(x.strip())
-                if not any(vals):
+                values = dict(zip(source_headers, [x.strip() for x in row]))
+                if not any(values.values()):
                     continue
-                res['samples'].append(zip(res['headers'], vals))
+                time_sampled = values.pop('TimeSampled', '')
+                if time_sampled and values.get('DateSampled'):
+                    values['DateSampled'] += ' ' + time_sampled
+                res['samples'].append(values.items())
             elif row[0].strip().lower() == 'samples':
-                headers = []
-                for x in row:
-                    if x != "TimeSampled":
-                        headers.append(x.strip())
-                res['headers'] = headers
+                source_headers = [x.strip() for x in row]
+                res['headers'] = [x for x in source_headers
+                                  if x != 'TimeSampled']
                 next_rows_are_sample_rows = True
         return res
 
@@ -654,7 +647,7 @@ class SampleImport(BaseContent):
             return value
         if field.type in ['reference', 'uidreference']:
             value = str(value).strip()
-            if len(value) < 2:
+            if not value:
                 raise ValueError('Row %s: value is too short (%s=%s)' % (
                     row_nr, fieldname, value))
             brains = self.lookup(field.allowed_types, title=value)
@@ -713,8 +706,8 @@ class SampleImport(BaseContent):
 
             # validate against sample and ar schemas
             for k, v in gridrow.items():
-                if k in ['Analysis', 'Profiles']:
-                    break
+                if k in ['Analyses', 'Profiles']:
+                    continue
                 if k in ar_schema:
                     try:
                         self.validate_against_schema(
@@ -745,8 +738,12 @@ class SampleImport(BaseContent):
         if field.type == 'boolean':
             value = str(value).strip().lower()
             return value
-        if field.type == 'reference':
-            value = str(value).strip()
+        if field.type in ('reference', 'uidreference'):
+            if field.multiValued:
+                values = value if isinstance(value, (list, tuple)) else [value]
+                value = [str(v).strip() for v in values if v]
+            else:
+                value = str(value or '').strip()
             if field.required and not value:
                 raise ValueError("Row %s: %s field requires a value" % (
                     row_nr, fieldname))
@@ -774,25 +771,31 @@ class SampleImport(BaseContent):
         """Lookup an object of type (allowed_types).  kwargs is sent
         directly to the catalog.
         """
-        at = getToolByName(self, 'archetype_tool')
         if type(allowed_types) not in (list, tuple):
             allowed_types = [allowed_types]
         for portal_type in allowed_types:
-            # TODO: SampleContainer is not found but Container is found,
-            # could be due to Dexterity vs Archetypes
-            if portal_type == 'SampleContainer':
-                catalog = at.catalog_map.get('Container', [None])[0]
+            # Resolve both Archetypes and Dexterity catalog registrations.
+            catalog_type = ('Container' if portal_type == 'SampleContainer'
+                            else portal_type)
+            query = dict(kwargs, portal_type=portal_type)
+            catalogs = api.get_catalogs_for(catalog_type)
+            if portal_type == 'SamplePoint':
+                # Client points take precedence over equally named lab points.
+                # Apply the same scope to title and UID lookups.
+                query['is_active'] = True
+                paths = self.get_samplepoint_paths()
+                for path in paths:
+                    query['path'] = {'query': path}
+                    for catalog in catalogs:
+                        brains = catalog(**query)
+                        if brains:
+                            return brains
             else:
-                catalog = at.catalog_map.get(portal_type, [None])[0]
-            catalog = getToolByName(self, catalog)
-            kwargs['portal_type'] = portal_type
-            if kwargs.get('title'):
-                kwargs['title'] = quote_chars(kwargs['title'])
-            if kwargs.get('UID'):
-                kwargs['UID'] = quote_chars(kwargs['UID'])
-            brains = catalog(**kwargs)
-            if brains:
-                return brains
+                for catalog in catalogs:
+                    brains = catalog(**query)
+                    if brains:
+                        return brains
+        return []
 
     def get_row_services(self, row):
         """Return a list of services which are referenced in Analyses.
@@ -829,14 +832,21 @@ class SampleImport(BaseContent):
                 self.error("Invalid profile specified: %s" % val)
         return list(services)
 
-    def Vocabulary_SamplePoint(self):
-        vocabulary = CatalogVocabulary(self)
-        vocabulary.catalog = "senaite_catalog_setup"
-        sn_setup = api.get_senaite_setup()
-        folders = [sn_setup.samplepoints]  # change
+    def get_samplepoint_paths(self):
+        """Search the importing client first, then shared lab Sample Points."""
+        folders = []
         if IClient.providedBy(self.aq_parent):
             folders.append(self.aq_parent)
-        return vocabulary(allow_blank=True, portal_type='SamplePoint')
+        folders.append(api.get_senaite_setup().samplepoints)
+        return ['/'.join(folder.getPhysicalPath()) for folder in folders]
+
+    def Vocabulary_SamplePoint(self):
+        vocabulary = CatalogVocabulary(
+            self, contentFilter={'portal_type': 'SamplePoint'})
+        vocabulary.catalog = "senaite_catalog_setup"
+        return vocabulary(allow_blank=True, portal_type='SamplePoint',
+                          is_active=True,
+                          path={'query': self.get_samplepoint_paths()})
 
     def Vocabulary_SampleType(self):
         vocabulary = CatalogVocabulary(self)
